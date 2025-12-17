@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Clock, MapPin, CheckCircle2, Calendar, AlertTriangle } from 'lucide-react'
+import { Clock, MapPin, CheckCircle2, Calendar, AlertTriangle, MessageCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { VisitDetailModal } from './VisitDetailModal'
@@ -11,9 +11,10 @@ import type { Visit } from '@/types'
 interface ActivityFeedProps {
   visits: Visit[]
   onVisitUpdate?: (visit: Visit) => void
+  onMessageCustomer?: (visit: Visit) => void
 }
 
-export function ActivityFeed({ visits, onVisitUpdate }: ActivityFeedProps) {
+export function ActivityFeed({ visits, onVisitUpdate, onMessageCustomer }: ActivityFeedProps) {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming')
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null)
 
@@ -192,14 +193,28 @@ export function ActivityFeed({ visits, onVisitUpdate }: ActivityFeedProps) {
                     </div>
                   </div>
 
-                  {/* Right: Price */}
-                  <div className="text-right">
+                  {/* Right: Price & Actions */}
+                  <div className="text-right flex flex-col items-end gap-2">
                     <div className="font-mono font-bold text-brand-primary text-lg">
                       ${(visit.price_cents / 100).toFixed(0)}
                     </div>
                     {activeTab === 'upcoming' && (
-                      <div className="text-xs text-text-muted mt-1">
-                        Click to add details
+                      <div className="flex items-center gap-2">
+                        {onMessageCustomer && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onMessageCustomer(visit)
+                            }}
+                            className="p-2 bg-brand-primary/10 hover:bg-brand-primary/20 rounded-lg transition-colors"
+                            title="Send message"
+                          >
+                            <MessageCircle size={16} className="text-brand-primary" />
+                          </button>
+                        )}
+                        <span className="text-xs text-text-muted">
+                          Click to add details
+                        </span>
                       </div>
                     )}
                   </div>

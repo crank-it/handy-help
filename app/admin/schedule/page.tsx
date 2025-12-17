@@ -2,11 +2,19 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MessageCircle, Users, X } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ActivityFeed } from '@/components/admin/ActivityFeed'
+import { MessageDialog, type MessageRecipient } from '@/components/admin/MessageDialog'
 import type { Visit } from '@/types'
+
+// Mock customer phone data (in production this would come from the database)
+const customerPhones: Record<string, string> = {
+  '1': '021 123 4567',
+  '2': '022 234 5678',
+  '3': '027 345 6789',
+}
 
 // Mock data - will be replaced with Supabase data
 const mockVisits: Visit[] = [
@@ -113,6 +121,89 @@ export default function SchedulePage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [visits, setVisits] = useState<Visit[]>(mockVisits)
 
+  // Messaging state
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false)
+  const [selectedVisits, setSelectedVisits] = useState<Set<string>>(new Set())
+  const [messageRecipients, setMessageRecipients] = useState<MessageRecipient[]>([])
+  const [isSelectMode, setIsSelectMode] = useState(false)
+
+  // Toggle selection mode
+  const toggleSelectMode = () => {
+    if (isSelectMode) {
+      setSelectedVisits(new Set())
+    }
+    setIsSelectMode(!isSelectMode)
+  }
+
+  // Toggle visit selection
+  const toggleVisitSelection = (visitId: string) => {
+    const newSelection = new Set(selectedVisits)
+    if (newSelection.has(visitId)) {
+      newSelection.delete(visitId)
+    } else {
+      newSelection.add(visitId)
+    }
+    setSelectedVisits(newSelection)
+  }
+
+  // Open message dialog for selected visits
+  const openBulkMessage = () => {
+    const recipients: MessageRecipient[] = []
+    const seenCustomers = new Set<string>()
+
+    visits
+      .filter((v) => selectedVisits.has(v.id))
+      .forEach((visit) => {
+        // Avoid duplicate customers
+        if (visit.customer_id && !seenCustomers.has(visit.customer_id)) {
+          seenCustomers.add(visit.customer_id)
+          recipients.push({
+            id: visit.customer_id,
+            name: visit.customer_name || 'Customer',
+            phone: customerPhones[visit.customer_id] || '',
+            address: visit.customer_address,
+          })
+        }
+      })
+
+    setMessageRecipients(recipients)
+    setIsMessageDialogOpen(true)
+  }
+
+  // Open message dialog for a single visit
+  const openSingleMessage = (visit: Visit) => {
+    setMessageRecipients([
+      {
+        id: visit.customer_id,
+        name: visit.customer_name || 'Customer',
+        phone: customerPhones[visit.customer_id] || '',
+        address: visit.customer_address,
+      },
+    ])
+    setIsMessageDialogOpen(true)
+  }
+
+  // Send message to all customers for a specific day
+  const openDayMessage = (dayVisits: Visit[]) => {
+    const recipients: MessageRecipient[] = []
+    const seenCustomers = new Set<string>()
+
+    dayVisits.forEach((visit) => {
+      if (visit.customer_id && !seenCustomers.has(visit.customer_id)) {
+        seenCustomers.add(visit.customer_id)
+        recipients.push({
+          id: visit.customer_id,
+          name: visit.customer_name || 'Customer',
+          phone: customerPhones[visit.customer_id] || '',
+          address: visit.customer_address,
+        })
+      }
+    })
+
+    setMessageRecipients(recipients)
+    setIsMessageDialogOpen(true)
+  }
+
   const handleVisitUpdate = (updatedVisit: Visit) => {
     setVisits((prev) =>
       prev.map((visit) => (visit.id === updatedVisit.id ? updatedVisit : visit))
@@ -173,6 +264,40 @@ export default function SchedulePage() {
         <h1 className="text-3xl font-bold text-brand-primary">Schedule</h1>
 
         <div className="flex items-center gap-2">
+          {/* Bulk Message Actions */}
+          <Button
+            variant={isSelectMode ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={toggleSelectMode}
+            className="flex items-center gap-2"
+          >
+            {isSelectMode ? (
+              <>
+                <X size={16} />
+                Cancel
+              </>
+            ) : (
+              <>
+                <Users size={16} />
+                Select
+              </>
+            )}
+          </Button>
+
+          {selectedVisits.size > 0 && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={openBulkMessage}
+              className="flex items-center gap-2"
+            >
+              <MessageCircle size={16} />
+              Message ({selectedVisits.size})
+            </Button>
+          )}
+
+          <div className="w-px h-8 bg-border mx-2" />
+
           <button
             onClick={() => setView('week')}
             className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
@@ -248,19 +373,64 @@ export default function SchedulePage() {
                 {/* Visits for this day */}
                 <div className="space-y-2">
                   {day.visits.map((visit) => (
-                    <Link
+                    <div
                       key={visit.id}
-                      href={`/admin/customers/${visit.customer_id}`}
-                      className="block w-full p-2 text-left bg-brand-primary/10 hover:bg-brand-primary/20 rounded border-l-4 border-brand-primary transition-colors"
+                      className={`relative group p-2 rounded border-l-4 transition-colors ${
+                        selectedVisits.has(visit.id)
+                          ? 'bg-brand-primary/30 border-brand-primary'
+                          : 'bg-brand-primary/10 hover:bg-brand-primary/20 border-brand-primary'
+                      }`}
                     >
-                      <div className="text-xs font-semibold text-brand-primary hover:text-brand-secondary truncate transition-colors">
-                        {visit.customer_name}
-                      </div>
-                      <div className="text-xs text-text-muted truncate">
-                        {visit.customer_suburb}
-                      </div>
-                    </Link>
+                      {/* Selection checkbox in select mode */}
+                      {isSelectMode && (
+                        <button
+                          onClick={() => toggleVisitSelection(visit.id)}
+                          className="absolute -left-1 -top-1 w-5 h-5 rounded-full bg-white border-2 border-brand-primary flex items-center justify-center"
+                        >
+                          {selectedVisits.has(visit.id) && (
+                            <div className="w-3 h-3 rounded-full bg-brand-primary" />
+                          )}
+                        </button>
+                      )}
+
+                      <Link
+                        href={`/admin/customers/${visit.customer_id}`}
+                        className="block"
+                      >
+                        <div className="text-xs font-semibold text-brand-primary hover:text-brand-secondary truncate transition-colors">
+                          {visit.customer_name}
+                        </div>
+                        <div className="text-xs text-text-muted truncate">
+                          {visit.customer_suburb}
+                        </div>
+                      </Link>
+
+                      {/* Quick message button on hover */}
+                      {!isSelectMode && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault()
+                            openSingleMessage(visit)
+                          }}
+                          className="absolute right-1 top-1 p-1 rounded bg-brand-primary text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Send message"
+                        >
+                          <MessageCircle size={12} />
+                        </button>
+                      )}
+                    </div>
                   ))}
+
+                  {/* Message all for this day button */}
+                  {day.visits.length > 0 && !isSelectMode && (
+                    <button
+                      onClick={() => openDayMessage(day.visits)}
+                      className="w-full p-1 text-xs text-brand-primary hover:bg-brand-primary/10 rounded transition-colors flex items-center justify-center gap-1"
+                    >
+                      <MessageCircle size={12} />
+                      Message all
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -279,8 +449,22 @@ export default function SchedulePage() {
 
       {/* Activity Feed */}
       <div className="mt-8">
-        <ActivityFeed visits={visits} onVisitUpdate={handleVisitUpdate} />
+        <ActivityFeed
+          visits={visits}
+          onVisitUpdate={handleVisitUpdate}
+          onMessageCustomer={(visit) => openSingleMessage(visit)}
+        />
       </div>
+
+      {/* Message Dialog */}
+      <MessageDialog
+        isOpen={isMessageDialogOpen}
+        onClose={() => {
+          setIsMessageDialogOpen(false)
+          setMessageRecipients([])
+        }}
+        recipients={messageRecipients}
+      />
     </div>
   )
 }
