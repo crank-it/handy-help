@@ -1,57 +1,51 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Customer } from '@/types'
+import { createClient } from '@/lib/supabase/client'
 
-// Mock data - will be replaced with Supabase data
-const mockCustomers = [
-  {
-    id: '1',
-    name: 'John Smith',
-    phone: '021 123 4567',
-    email: 'john@example.com',
-    address: '123 Main St',
-    suburb: 'Roslyn',
-    lawn_size: 'medium',
-    package: 'standard',
-    price_per_visit: 60,
-    status: 'pending_assessment' as const,
-  },
-  {
-    id: '2',
-    name: 'Sarah Johnson',
-    phone: '021 234 5678',
-    email: 'sarah@example.com',
-    address: '456 Oak Ave',
-    suburb: 'Maori Hill',
-    lawn_size: 'large',
-    package: 'premium',
-    price_per_visit: 95,
-    status: 'active' as const,
-  },
-  {
-    id: '3',
-    name: 'Mike Wilson',
-    phone: '021 345 6789',
-    email: null,
-    address: '789 Pine Rd',
-    suburb: 'Wakari',
-    lawn_size: 'small',
-    package: 'standard',
-    price_per_visit: 45,
-    status: 'active' as const,
-  },
-]
+// Helper to calculate price per visit based on lawn size and package
+function getPricePerVisit(lawnSize: string, packageType: string): number {
+  const pricing: Record<string, Record<string, number>> = {
+    small: { standard: 45, premium: 55 },
+    medium: { standard: 60, premium: 70 },
+    large: { standard: 80, premium: 95 },
+  }
+  return pricing[lawnSize]?.[packageType] || 0
+}
 
 export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const filteredCustomers = mockCustomers.filter((customer) => {
+  useEffect(() => {
+    async function fetchCustomers() {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching customers:', error)
+        setCustomers([])
+      } else {
+        setCustomers(data || [])
+      }
+      setLoading(false)
+    }
+
+    fetchCustomers()
+  }, [])
+
+  const filteredCustomers = customers.filter((customer) => {
     const matchesSearch =
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.address.toLowerCase().includes(searchQuery.toLowerCase())
@@ -72,6 +66,14 @@ export default function CustomersPage() {
       default:
         return <Badge variant="info">● {status}</Badge>
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-text-muted">Loading customers...</p>
+      </div>
+    )
   }
 
   return (
@@ -139,11 +141,11 @@ export default function CustomersPage() {
                   )}
                 </td>
                 <td className="p-4">
-                  <span className="capitalize text-text-primary">{customer.package}</span>
+                  <span className="capitalize text-text-primary">{customer.package_type}</span>
                   <span className="text-xs text-text-muted block">({customer.lawn_size})</span>
                 </td>
                 <td className="p-4 font-mono font-semibold text-brand-primary">
-                  ${customer.price_per_visit}
+                  ${getPricePerVisit(customer.lawn_size, customer.package_type)}
                 </td>
                 <td className="p-4">{getStatusBadge(customer.status)}</td>
                 <td className="p-4">
@@ -180,10 +182,10 @@ export default function CustomersPage() {
 
             <div className="flex items-center justify-between pt-2 border-t border-border">
               <span className="text-sm capitalize">
-                {customer.package} ({customer.lawn_size})
+                {customer.package_type} ({customer.lawn_size})
               </span>
               <span className="font-mono font-semibold text-brand-primary">
-                ${customer.price_per_visit}
+                ${getPricePerVisit(customer.lawn_size, customer.package_type)}
               </span>
             </div>
           </Link>
