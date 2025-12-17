@@ -1,74 +1,112 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Phone, Mail, MapPin, ArrowLeft, ClipboardCheck, AlertCircle, Clock, AlertTriangle, MessageCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { MessageDialog, type MessageRecipient } from '@/components/admin/MessageDialog'
+import { createClient } from '@/lib/supabase/client'
+import { Customer } from '@/types'
 
-// Mock data - will be replaced with Supabase data
-const mockCustomer = {
-  id: '1',
-  name: 'John Smith',
-  phone: '021 123 4567',
-  email: 'john@example.com',
-  address: '123 Main St',
-  suburb: 'Roslyn',
-  lawn_size: 'medium',
-  package: 'standard',
-  price_per_visit: 60,
-  status: 'pending_assessment' as const, // Changed to pending_assessment to show the flow
-  notes: 'Gate code: 1234. Dog in backyard on Mondays.',
-  created_at: '2025-01-15',
-  has_assessment: false, // Track if assessment is completed
-  average_completion_time: 48, // in minutes
-  stats: {
-    total_visits: 8,
-    completed_visits: 6,
-    total_paid: 360,
-  },
-  visits: [
-    {
-      id: '1',
-      scheduled_date: '2025-02-15',
-      status: 'scheduled',
-      price_cents: 6000,
-      property_issues: undefined,
-      customer_issues: undefined,
-      created_at: '2025-01-01',
-    },
-    {
-      id: '2',
-      scheduled_date: '2025-01-18',
-      status: 'completed',
-      price_cents: 6000,
-      completed_at: '2025-01-18T14:30:00',
-      actual_duration_minutes: 45,
-      completion_notes: 'Lawn in excellent condition. Trimmed edges.',
-      property_issues: undefined,
-      customer_issues: undefined,
-      created_at: '2025-01-01',
-    },
-    {
-      id: '3',
-      scheduled_date: '2025-01-04',
-      status: 'completed',
-      price_cents: 6000,
-      completed_at: '2025-01-04T10:15:00',
-      actual_duration_minutes: 50,
-      completion_notes: 'Lawn was quite long, took a bit more time.',
-      property_issues: 'Small hole near the tree - customer aware',
-      customer_issues: undefined,
-      created_at: '2025-01-01',
-    },
-  ],
+// Helper to calculate price per visit
+function getPricePerVisit(lawnSize: string, packageType: string): number {
+  const pricing: Record<string, Record<string, number>> = {
+    small: { standard: 45, premium: 55 },
+    medium: { standard: 60, premium: 70 },
+    large: { standard: 80, premium: 95 },
+  }
+  return pricing[lawnSize]?.[packageType] || 0
 }
 
 export default function CustomerDetailPage({ params }: { params: { id: string } }) {
-  const customer = mockCustomer
+  const [customer, setCustomer] = useState<any | null>(null)
+  const [visits, setVisits] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false)
+
+  useEffect(() => {
+    async function fetchCustomerData() {
+      const supabase = createClient()
+
+      // Fetch customer
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('id', params.id)
+        .single()
+
+      if (customerError) {
+        console.error('Error fetching customer:', customerError)
+        setLoading(false)
+        return
+      }
+
+      // Fetch visits
+      const { data: visitsData, error: visitsError } = await supabase
+        .from('visits')
+        .select('*')
+        .eq('customer_id', params.id)
+        .order('scheduled_date', { ascending: false })
+
+      if (visitsError) {
+        console.error('Error fetching visits:', visitsError)
+      }
+
+      // Calculate stats
+      const totalVisits = visitsData?.length || 0
+      const completedVisits = visitsData?.filter(v => v.status === 'completed').length || 0
+      const totalPaid = visitsData
+        ?.filter(v => v.status === 'completed')
+        .reduce((sum, v) => sum + (v.price_cents || 0), 0) || 0
+
+      // Calculate average completion time
+      const completedVisitsWithTime = visitsData?.filter(v =>
+        v.status === 'completed' && v.actual_duration_minutes
+      ) || []
+      const avgTime = completedVisitsWithTime.length > 0
+        ? Math.round(
+            completedVisitsWithTime.reduce((sum, v) => sum + v.actual_duration_minutes, 0) /
+            completedVisitsWithTime.length
+          )
+        : null
+
+      setCustomer({
+        ...customerData,
+        stats: {
+          total_visits: totalVisits,
+          completed_visits: completedVisits,
+          total_paid: totalPaid / 100, // Convert cents to dollars
+        },
+        average_completion_time: avgTime,
+        has_assessment: customerData.status !== 'pending_assessment', // Simplified check
+      })
+      setVisits(visitsData || [])
+      setLoading(false)
+    }
+
+    fetchCustomerData()
+  }, [params.id])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-text-muted">Loading customer details...</p>
+      </div>
+    )
+  }
+
+  if (!customer) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <p className="text-text-muted mb-4">Customer not found</p>
+        <Link href="/admin/customers" className="text-brand-primary hover:text-brand-secondary">
+          ← Back to Customers
+        </Link>
+      </div>
+    )
+  }
 
   // Build recipient for messaging
   const messageRecipient: MessageRecipient = {
@@ -192,7 +230,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-text-muted">Package:</span>
-                <span className="font-semibold capitalize">{customer.package}</span>
+                <span className="font-semibold capitalize">{customer.package_type}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-muted">Lawn Size:</span>
@@ -201,7 +239,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
               <div className="flex justify-between">
                 <span className="text-text-muted">Price per visit:</span>
                 <span className="font-mono font-bold text-brand-primary">
-                  ${customer.price_per_visit}
+                  ${getPricePerVisit(customer.lawn_size, customer.package_type)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -217,10 +255,10 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
           </div>
         </div>
 
-        {customer.notes && (
+        {customer.special_instructions && (
           <div className="mt-6 pt-6 border-t border-border">
-            <h3 className="text-sm text-text-muted mb-2 font-semibold">Notes</h3>
-            <p className="text-text-primary">{customer.notes}</p>
+            <h3 className="text-sm text-text-muted mb-2 font-semibold">Special Instructions</h3>
+            <p className="text-text-primary">{customer.special_instructions}</p>
           </div>
         )}
 
@@ -304,7 +342,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
         </h2>
 
         <div className="space-y-3">
-          {customer.visits.map((visit) => (
+          {visits.map((visit) => (
             <div
               key={visit.id}
               className="p-4 bg-bg-muted rounded-lg"
