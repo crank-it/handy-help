@@ -1,26 +1,93 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand Colors - Updated to match Handy Help logo */
+  --brand-primary: #4A8B3A;   /* Lawn Green - main brand color */
+  --brand-secondary: #5CB338;  /* Bright Lawn Green - hover states */
+  --brand-accent: #E8B440;     /* Gold - accents and highlights */
+  --brand-dark: #2F6B25;       /* Dark Green - text on light backgrounds */
+
+  /* Backgrounds */
+  --bg-page: #F7F9F6;          /* Very light green tint */
+  --bg-card: #FFFFFF;
+  --bg-muted: #EFF5ED;         /* Light green-tinted muted */
+
+  /* Text Colors */
+  --text-primary: #1F2E1A;     /* Dark green-black */
+  --text-secondary: #4A5A45;   /* Medium green-gray */
+  --text-muted: #8A9B85;       /* Muted green-gray */
+  --text-on-brand: #FFFFFF;
+
+  /* Interactive */
+  --border: #D8E5D3;           /* Light green border */
+  --border-focus: #5CB338;     /* Bright green focus */
+
+  /* Semantic Colors */
+  --success: #4A8B3A;          /* Lawn Green for success */
+  --warning: #E8B440;          /* Gold for warnings */
+  --error: #D94444;            /* Red for errors */
+
+  /* Service Category Colors (future expansion) */
+  --service-lawn: #4A8B3A;
+  --service-garden: #8B5CF6;
+  --service-clean: #06B6D4;
+  --service-handy: #E8B440;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Extend Tailwind with custom colors */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-dark: var(--brand-dark);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-bg-page: var(--bg-page);
+  --color-bg-card: var(--bg-card);
+  --color-bg-muted: var(--bg-muted);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-on-brand: var(--text-on-brand);
+
+  --color-border: var(--border);
+  --color-border-focus: var(--border-focus);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+
+  /* Font families */
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Utility classes */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }

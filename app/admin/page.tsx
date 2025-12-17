@@ -1,0 +1,287 @@
+import Link from 'next/link'
+import { Calendar, Clipboard, Users, DollarSign } from 'lucide-react'
+import { StatCard } from '@/components/admin/StatCard'
+import { Card } from '@/components/ui/Card'
+
+// This will be replaced with real data from Supabase
+const mockData = {
+  todayJobs: 3,
+  weekJobs: 12,
+  activeCustomers: 25,
+  monthRevenue: 1840,
+  todayVisits: [
+    {
+      id: '1',
+      customer_id: '1',
+      customer_name: 'John Smith',
+      customer_address: '123 Main St',
+      customer_suburb: 'Roslyn',
+      lawn_size: 'medium',
+      price: 60,
+      scheduled_time: 'morning',
+    },
+    {
+      id: '2',
+      customer_id: '2',
+      customer_name: 'Sarah Johnson',
+      customer_address: '456 Oak Ave',
+      customer_suburb: 'Maori Hill',
+      lawn_size: 'large',
+      price: 80,
+      scheduled_time: 'afternoon',
+    },
+    {
+      id: '3',
+      customer_id: '3',
+      customer_name: 'Mike Wilson',
+      customer_address: '789 Pine Rd',
+      customer_suburb: 'Wakari',
+      lawn_size: 'small',
+      price: 45,
+      scheduled_time: 'morning',
+    },
+  ],
+  upcomingVisits: [
+    {
+      id: '4',
+      customer_id: '1',
+      customer_name: 'John Smith',
+      customer_address: '123 Main St',
+      customer_suburb: 'Roslyn',
+      lawn_size: 'medium',
+      price: 60,
+      scheduled_date: '2025-12-20',
+      scheduled_time: 'morning',
+    },
+    {
+      id: '5',
+      customer_id: '4',
+      customer_name: 'Emma Davis',
+      customer_address: '321 Elm St',
+      customer_suburb: 'Mornington',
+      lawn_size: 'small',
+      price: 45,
+      scheduled_date: '2025-12-21',
+      scheduled_time: 'afternoon',
+    },
+    {
+      id: '6',
+      customer_id: '2',
+      customer_name: 'Sarah Johnson',
+      customer_address: '456 Oak Ave',
+      customer_suburb: 'Maori Hill',
+      lawn_size: 'large',
+      price: 95,
+      scheduled_date: '2025-12-22',
+      scheduled_time: 'morning',
+    },
+    {
+      id: '7',
+      customer_id: '5',
+      customer_name: 'James Brown',
+      customer_address: '654 Birch Ave',
+      customer_suburb: 'Kaikorai',
+      lawn_size: 'medium',
+      price: 70,
+      scheduled_date: '2025-12-23',
+      scheduled_time: 'morning',
+    },
+  ],
+}
+
+export default function AdminDashboard() {
+  const today = new Date().toLocaleDateString('en-NZ', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-brand-primary mb-2">
+          Dashboard
+        </h1>
+        <p className="text-text-secondary">{today}</p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          label="Today's Jobs"
+          value={mockData.todayJobs}
+          icon={<Clipboard size={24} />}
+          color="primary"
+        />
+        <StatCard
+          label="This Week"
+          value={mockData.weekJobs}
+          icon={<Calendar size={24} />}
+          color="secondary"
+        />
+        <StatCard
+          label="Active Customers"
+          value={mockData.activeCustomers}
+          icon={<Users size={24} />}
+          color="accent"
+        />
+        <StatCard
+          label="This Month Revenue"
+          value={`$${mockData.monthRevenue}`}
+          icon={<DollarSign size={24} />}
+          color="success"
+        />
+      </div>
+
+      {/* Today's Schedule */}
+      <Card className="mb-8">
+        <h2 className="text-xl font-semibold text-brand-primary mb-4">
+          Today's Schedule
+        </h2>
+
+        {mockData.todayVisits.length === 0 ? (
+          <p className="text-text-muted text-center py-8">
+            No visits scheduled for today. Enjoy your day off! 🌞
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {mockData.todayVisits.map((visit) => (
+              <div
+                key={visit.id}
+                className="flex items-center justify-between p-4 bg-bg-muted rounded-lg hover:bg-bg-muted/80 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-brand-primary/10 rounded-lg flex items-center justify-center">
+                    <span className="text-2xl">🏡</span>
+                  </div>
+                  <div>
+                    <Link
+                      href={`/admin/customers/${visit.customer_id}`}
+                      className="font-semibold text-brand-primary hover:text-brand-secondary transition-colors"
+                    >
+                      {visit.customer_name}
+                    </Link>
+                    <div className="text-sm text-text-muted">
+                      {visit.customer_address}, {visit.customer_suburb}
+                    </div>
+                    <div className="text-xs text-text-muted capitalize">
+                      {visit.lawn_size} lawn • {visit.scheduled_time}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-mono font-semibold text-brand-primary">
+                    ${visit.price}
+                  </div>
+                  <button className="text-sm text-success hover:text-success/80 font-semibold mt-1">
+                    Mark Complete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* Upcoming Jobs */}
+      <Card className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-brand-primary">
+            Upcoming Jobs
+          </h2>
+          <Link
+            href="/admin/schedule"
+            className="text-sm text-brand-primary hover:text-brand-secondary font-semibold"
+          >
+            View Full Schedule →
+          </Link>
+        </div>
+
+        {mockData.upcomingVisits.length === 0 ? (
+          <p className="text-text-muted text-center py-8">
+            No upcoming visits scheduled.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {mockData.upcomingVisits.map((visit) => (
+              <div
+                key={visit.id}
+                className="flex items-center justify-between p-3 bg-bg-muted rounded-lg hover:bg-bg-muted/70 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="text-center min-w-[60px]">
+                    <div className="text-xs text-text-muted font-semibold">
+                      {new Date(visit.scheduled_date).toLocaleDateString('en-NZ', {
+                        weekday: 'short',
+                      })}
+                    </div>
+                    <div className="text-lg font-bold text-brand-primary">
+                      {new Date(visit.scheduled_date).toLocaleDateString('en-NZ', {
+                        day: 'numeric',
+                      })}
+                    </div>
+                    <div className="text-xs text-text-muted">
+                      {new Date(visit.scheduled_date).toLocaleDateString('en-NZ', {
+                        month: 'short',
+                      })}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <Link
+                      href={`/admin/customers/${visit.customer_id}`}
+                      className="font-semibold text-brand-primary hover:text-brand-secondary transition-colors"
+                    >
+                      {visit.customer_name}
+                    </Link>
+                    <div className="text-sm text-text-muted">
+                      {visit.customer_suburb} • {visit.scheduled_time}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-mono font-semibold text-brand-primary">
+                    ${visit.price}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <h2 className="text-xl font-semibold text-brand-primary mb-4">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link
+            href="/admin/schedule"
+            className="p-4 border-2 border-border hover:border-brand-primary rounded-lg text-left transition-colors"
+          >
+            <div className="text-2xl mb-2">📅</div>
+            <div className="font-semibold text-text-primary">View Schedule</div>
+            <div className="text-sm text-text-muted">See upcoming visits</div>
+          </Link>
+          <Link
+            href="/admin/customers"
+            className="p-4 border-2 border-border hover:border-brand-primary rounded-lg text-left transition-colors"
+          >
+            <div className="text-2xl mb-2">👥</div>
+            <div className="font-semibold text-text-primary">Manage Customers</div>
+            <div className="text-sm text-text-muted">View all customers</div>
+          </Link>
+          <Link
+            href="/admin/earnings"
+            className="p-4 border-2 border-border hover:border-brand-primary rounded-lg text-left transition-colors"
+          >
+            <div className="text-2xl mb-2">💰</div>
+            <div className="font-semibold text-text-primary">Track Earnings</div>
+            <div className="text-sm text-text-muted">Revenue & payments</div>
+          </Link>
+        </div>
+      </Card>
+    </div>
+  )
+}
