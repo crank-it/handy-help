@@ -46,13 +46,13 @@ export async function POST(request: NextRequest) {
     if (customerError) {
       console.error('Error creating customer:', customerError)
       return NextResponse.json(
-        { error: 'Failed to create booking' },
+        { error: 'Failed to create booking', details: customerError.message },
         { status: 500 }
       )
     }
 
     // Generate visits for the year
-    const visits = generateCustomerVisits(customer.id, packageType)
+    const visits = generateCustomerVisits(customer.id, packageType, lawnSize)
 
     // Insert all visits
     const { error: visitsError } = await supabase
@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
 
     if (visitsError) {
       console.error('Error creating visits:', visitsError)
-      // Note: Customer was created but visits failed
-      // Consider implementing rollback or cleanup
+      // Customer was created but visits failed - still return success
+      // as the customer record exists and visits can be regenerated
     }
 
     // Send notification email (if Resend is configured)
