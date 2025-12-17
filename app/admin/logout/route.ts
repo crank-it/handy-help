@@ -1,16 +1,37 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
 export async function POST() {
-  const supabase = await createClient()
-  await supabase.auth.signOut()
+  try {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+  } catch (error) {
+    console.log('Supabase signout error (may not be configured):', error)
+  }
 
-  return NextResponse.redirect(new URL('/admin/login', process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3002'))
+  // Clear fallback session cookie
+  const cookieStore = await cookies()
+  cookieStore.delete('admin-session')
+
+  const response = NextResponse.redirect(new URL('/admin/login', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'))
+  response.cookies.delete('admin-session')
+  return response
 }
 
 export async function GET() {
-  const supabase = await createClient()
-  await supabase.auth.signOut()
+  try {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+  } catch (error) {
+    console.log('Supabase signout error (may not be configured):', error)
+  }
 
-  return NextResponse.redirect(new URL('/admin/login', process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3002'))
+  // Clear fallback session cookie
+  const cookieStore = await cookies()
+  cookieStore.delete('admin-session')
+
+  const response = NextResponse.redirect(new URL('/admin/login', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'))
+  response.cookies.delete('admin-session')
+  return response
 }

@@ -20,22 +20,35 @@ export default function AdminLoginPage() {
     setIsLoading(true)
 
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Call the auth API endpoint
+      const response = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       })
 
-      if (error) {
-        setError('Invalid email or password')
-        console.error('Login error:', error)
-      } else if (data.user) {
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Login successful
+        console.log('Login successful using:', data.method)
+
+        // If using Supabase method, also sign in on client side
+        if (data.method === 'supabase') {
+          const supabase = createClient()
+          await supabase.auth.signInWithPassword({ email, password })
+        }
+
         router.push('/admin')
         router.refresh()
+      } else {
+        setError(data.error || 'Invalid email or password')
       }
     } catch (err) {
-      setError('An error occurred. Please try again.')
       console.error('Login error:', err)
+      setError('An error occurred. Please check your connection and try again.')
     } finally {
       setIsLoading(false)
     }

@@ -5,7 +5,15 @@ export async function middleware(request: NextRequest) {
   // Only protect /admin routes (except /admin/login and /admin/logout)
   if (request.nextUrl.pathname.startsWith('/admin') &&
       request.nextUrl.pathname !== '/admin/login' &&
-      !request.nextUrl.pathname.startsWith('/admin/logout')) {
+      !request.nextUrl.pathname.startsWith('/admin/logout') &&
+      !request.nextUrl.pathname.startsWith('/api/admin/auth')) {
+
+    // Check for fallback session cookie first
+    const fallbackSession = request.cookies.get('admin-session')
+    if (fallbackSession?.value === 'authenticated') {
+      // Fallback auth is active, allow access
+      return NextResponse.next()
+    }
 
     // Check if Supabase is configured
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -66,5 +74,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*']
+  matcher: [
+    '/admin/:path*',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ]
 }
