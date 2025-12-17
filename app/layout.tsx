@@ -20,6 +20,26 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Handy Help NZ - Local help you can count on",
   description: "Professional lawn care for Dunedin homes. Run by William, a 15-year-old entrepreneur supported by 20 years of business experience.",
+  openGraph: {
+    title: "Handy Help NZ - Local help you can count on",
+    description: "Professional lawn care for Dunedin homes. Run by William, a 15-year-old entrepreneur supported by 20 years of business experience.",
+    images: [
+      {
+        url: "/logo.png",
+        width: 800,
+        height: 600,
+        alt: "Handy Help NZ Logo",
+      },
+    ],
+    type: "website",
+    siteName: "Handy Help NZ",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Handy Help NZ - Local help you can count on",
+    description: "Professional lawn care for Dunedin homes. Run by William, a 15-year-old entrepreneur supported by 20 years of business experience.",
+    images: ["/logo.png"],
+  },
 };
 
 export default function RootLayout({
