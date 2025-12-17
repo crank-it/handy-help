@@ -2,95 +2,36 @@ import Link from 'next/link'
 import { Calendar, Clipboard, Users, DollarSign } from 'lucide-react'
 import { StatCard } from '@/components/admin/StatCard'
 import { Card } from '@/components/ui/Card'
+import { getTodaysVisits, getUpcomingVisits, getVisits } from '@/lib/data/schedule'
+import { getCustomers } from '@/lib/data/customers'
 
-// This will be replaced with real data from Supabase
-const mockData = {
-  todayJobs: 3,
-  weekJobs: 12,
-  activeCustomers: 25,
-  monthRevenue: 1840,
-  todayVisits: [
-    {
-      id: '1',
-      customer_id: '1',
-      customer_name: 'John Smith',
-      customer_address: '123 Main St',
-      customer_suburb: 'Roslyn',
-      lawn_size: 'medium',
-      price: 60,
-      scheduled_time: 'morning',
-    },
-    {
-      id: '2',
-      customer_id: '2',
-      customer_name: 'Sarah Johnson',
-      customer_address: '456 Oak Ave',
-      customer_suburb: 'Maori Hill',
-      lawn_size: 'large',
-      price: 80,
-      scheduled_time: 'afternoon',
-    },
-    {
-      id: '3',
-      customer_id: '3',
-      customer_name: 'Mike Wilson',
-      customer_address: '789 Pine Rd',
-      customer_suburb: 'Wakari',
-      lawn_size: 'small',
-      price: 45,
-      scheduled_time: 'morning',
-    },
-  ],
-  upcomingVisits: [
-    {
-      id: '4',
-      customer_id: '1',
-      customer_name: 'John Smith',
-      customer_address: '123 Main St',
-      customer_suburb: 'Roslyn',
-      lawn_size: 'medium',
-      price: 60,
-      scheduled_date: '2025-12-20',
-      scheduled_time: 'morning',
-    },
-    {
-      id: '5',
-      customer_id: '4',
-      customer_name: 'Emma Davis',
-      customer_address: '321 Elm St',
-      customer_suburb: 'Mornington',
-      lawn_size: 'small',
-      price: 45,
-      scheduled_date: '2025-12-21',
-      scheduled_time: 'afternoon',
-    },
-    {
-      id: '6',
-      customer_id: '2',
-      customer_name: 'Sarah Johnson',
-      customer_address: '456 Oak Ave',
-      customer_suburb: 'Maori Hill',
-      lawn_size: 'large',
-      price: 95,
-      scheduled_date: '2025-12-22',
-      scheduled_time: 'morning',
-    },
-    {
-      id: '7',
-      customer_id: '5',
-      customer_name: 'James Brown',
-      customer_address: '654 Birch Ave',
-      customer_suburb: 'Kaikorai',
-      lawn_size: 'medium',
-      price: 70,
-      scheduled_date: '2025-12-23',
-      scheduled_time: 'morning',
-    },
-  ],
-}
+export default async function AdminDashboard() {
+  // Fetch real data from Supabase
+  const todayVisits = await getTodaysVisits()
+  const upcomingVisits = await getUpcomingVisits(4)
+  const customers = await getCustomers()
 
-export default function AdminDashboard() {
-  const today = new Date().toLocaleDateString('en-NZ', {
+  // Calculate stats
+  const activeCustomers = customers.filter(c => c.status === 'active').length
+
+  // Get this week's visits
+  const now = new Date()
+  const weekEnd = new Date(now)
+  weekEnd.setDate(now.getDate() + 7)
+  const weekVisits = await getVisits({
+    startDate: now.toISOString().split('T')[0],
+    endDate: weekEnd.toISOString().split('T')[0],
+  })
+
+  // Calculate this month's revenue from completed visits
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const monthVisits = await getVisits({
+    startDate: monthStart.toISOString().split('T')[0],
+    endDate: now.toISOString().split('T')[0],
+    status: 'completed',
+  })
+  const monthRevenue = monthVisits.reduce((sum, v) => sum + (v.price_cents / 100), 0)
+  const todayFormatted = now.toLocaleDateString('en-NZ', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -103,32 +44,32 @@ export default function AdminDashboard() {
         <h1 className="text-3xl font-bold text-brand-primary mb-2">
           Dashboard
         </h1>
-        <p className="text-text-secondary">{today}</p>
+        <p className="text-text-secondary">{todayFormatted}</p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           label="Today's Jobs"
-          value={mockData.todayJobs}
+          value={todayVisits.length}
           icon={<Clipboard size={24} />}
           color="primary"
         />
         <StatCard
           label="This Week"
-          value={mockData.weekJobs}
+          value={weekVisits.length}
           icon={<Calendar size={24} />}
           color="secondary"
         />
         <StatCard
           label="Active Customers"
-          value={mockData.activeCustomers}
+          value={activeCustomers}
           icon={<Users size={24} />}
           color="accent"
         />
         <StatCard
           label="This Month Revenue"
-          value={`$${mockData.monthRevenue}`}
+          value={`$${Math.round(monthRevenue)}`}
           icon={<DollarSign size={24} />}
           color="success"
         />
@@ -140,13 +81,13 @@ export default function AdminDashboard() {
           Today's Schedule
         </h2>
 
-        {mockData.todayVisits.length === 0 ? (
+        {todayVisits.length === 0 ? (
           <p className="text-text-muted text-center py-8">
             No visits scheduled for today. Enjoy your day off! 🌞
           </p>
         ) : (
           <div className="space-y-4">
-            {mockData.todayVisits.map((visit) => (
+            {todayVisits.map((visit) => (
               <div
                 key={visit.id}
                 className="flex items-center justify-between p-4 bg-bg-muted rounded-lg hover:bg-bg-muted/80 transition-colors"
@@ -163,16 +104,18 @@ export default function AdminDashboard() {
                       {visit.customer_name}
                     </Link>
                     <div className="text-sm text-text-muted">
-                      {visit.customer_address}, {visit.customer_suburb}
+                      {visit.customer_address}
+                      {visit.customer_suburb && `, ${visit.customer_suburb}`}
                     </div>
                     <div className="text-xs text-text-muted capitalize">
-                      {visit.lawn_size} lawn • {visit.scheduled_time}
+                      {visit.lawn_size} lawn
+                      {visit.scheduled_time && ` • ${visit.scheduled_time}`}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-mono font-semibold text-brand-primary">
-                    ${visit.price}
+                    ${(visit.price_cents / 100).toFixed(0)}
                   </div>
                   <button className="text-sm text-success hover:text-success/80 font-semibold mt-1">
                     Mark Complete
@@ -198,13 +141,13 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        {mockData.upcomingVisits.length === 0 ? (
+        {upcomingVisits.length === 0 ? (
           <p className="text-text-muted text-center py-8">
             No upcoming visits scheduled.
           </p>
         ) : (
           <div className="space-y-3">
-            {mockData.upcomingVisits.map((visit) => (
+            {upcomingVisits.map((visit) => (
               <div
                 key={visit.id}
                 className="flex items-center justify-between p-3 bg-bg-muted rounded-lg hover:bg-bg-muted/70 transition-colors"
@@ -235,13 +178,14 @@ export default function AdminDashboard() {
                       {visit.customer_name}
                     </Link>
                     <div className="text-sm text-text-muted">
-                      {visit.customer_suburb} • {visit.scheduled_time}
+                      {visit.customer_suburb || visit.customer_address}
+                      {visit.scheduled_time && ` • ${visit.scheduled_time}`}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-mono font-semibold text-brand-primary">
-                    ${visit.price}
+                    ${(visit.price_cents / 100).toFixed(0)}
                   </div>
                 </div>
               </div>
