@@ -99,19 +99,30 @@ export function Sidebar() {
 
         {/* User section */}
         <div className="p-4 border-t border-border">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 bg-brand-primary rounded-full flex items-center justify-center text-white font-bold">
-              W
+              B
             </div>
-            <div>
-              <div className="font-semibold text-text-primary text-sm">William</div>
-              <Link
-                href="/"
-                className="text-xs text-text-muted hover:text-brand-primary"
+            <div className="flex-1">
+              <div className="font-semibold text-text-primary text-sm">Admin</div>
+              <div className="text-xs text-text-muted">Handy Help NZ</div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/"
+              className="text-xs text-text-muted hover:text-brand-primary text-center"
+            >
+              Back to site
+            </Link>
+            <form action="/admin/logout" method="POST">
+              <button
+                type="submit"
+                className="w-full text-xs text-red-600 hover:text-red-700 font-semibold"
               >
-                Back to site
-              </Link>
-            </div>
+                Sign Out
+              </button>
+            </form>
           </div>
         </div>
       </aside>
