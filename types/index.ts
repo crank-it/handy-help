@@ -7,6 +7,13 @@ export type CustomerStatus = 'pending_assessment' | 'active' | 'paused' | 'cance
 export type PaymentMethod = 'bank_transfer' | 'cash'
 export type PaymentStatus = 'pending' | 'paid'
 
+// Messaging types
+export type MessageDirection = 'outbound' | 'inbound'
+export type MessageStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'failed'
+export type MessageContextType = 'manual' | 'reminder' | 'weather' | 'delay' | 'on_the_way' | 'sick_day' | 'follow_up' | 'bulk' | 'reply'
+export type TemplateCategory = 'reminder' | 'weather' | 'delay' | 'on_the_way' | 'sick_day' | 'follow_up' | 'general'
+export type BulkMessageStatus = 'pending' | 'sending' | 'completed' | 'partial_failure'
+
 // Future: Service types for platform expansion
 export type ServiceType = 'lawn_care' | 'gardening' | 'cleaning' | 'handyman'
 
@@ -156,4 +163,70 @@ export interface PropertyAssessment {
   assessed_by: string
   assessed_at: string
   notes?: string
+}
+
+// Messaging entities
+export interface Message {
+  id: string
+  customer_id?: string
+  customer_name?: string
+  phone_number: string
+  message_body: string
+  template_id?: string
+  direction: MessageDirection
+  status: MessageStatus
+  whatsapp_message_id?: string
+  error_message?: string
+  context_type?: MessageContextType
+  context_id?: string
+  bulk_message_id?: string
+  sent_at?: string
+  delivered_at?: string
+  read_at?: string
+  created_at: string
+  updated_at?: string
+}
+
+export interface MessageTemplate {
+  id: string
+  name: string
+  category: TemplateCategory
+  template_body: string
+  whatsapp_template_name?: string
+  whatsapp_template_namespace?: string
+  is_active: boolean
+  created_at: string
+  updated_at?: string
+}
+
+export interface BulkMessage {
+  id: string
+  message_body: string
+  template_id?: string
+  total_recipients: number
+  sent_count: number
+  delivered_count: number
+  failed_count: number
+  status: BulkMessageStatus
+  started_at?: string
+  completed_at?: string
+  created_at: string
+  updated_at?: string
+}
+
+// Message sending request types
+export interface SendMessageRequest {
+  customerIds?: string[]
+  phoneNumbers?: string[]
+  message: string
+  templateId?: string
+  contextType?: MessageContextType
+  contextId?: string
+  templateVariables?: Record<string, string>
+}
+
+export interface MessageRecipient {
+  customerId?: string
+  customerName?: string
+  phoneNumber: string
 }

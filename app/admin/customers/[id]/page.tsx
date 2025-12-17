@@ -1,8 +1,12 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
-import { Phone, Mail, MapPin, ArrowLeft, ClipboardCheck, AlertCircle, Clock, AlertTriangle } from 'lucide-react'
+import { Phone, Mail, MapPin, ArrowLeft, ClipboardCheck, AlertCircle, Clock, AlertTriangle, MessageCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { MessageDialog, type MessageRecipient } from '@/components/admin/MessageDialog'
 
 // Mock data - will be replaced with Supabase data
 const mockCustomer = {
@@ -64,6 +68,15 @@ const mockCustomer = {
 
 export default function CustomerDetailPage({ params }: { params: { id: string } }) {
   const customer = mockCustomer
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false)
+
+  // Build recipient for messaging
+  const messageRecipient: MessageRecipient = {
+    id: customer.id,
+    name: customer.name,
+    phone: customer.phone,
+    address: customer.address,
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -126,6 +139,15 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
             {getStatusBadge(customer.status)}
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setIsMessageDialogOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <MessageCircle size={16} />
+              Message
+            </Button>
             <Button variant="secondary" size="sm">Edit</Button>
             <Button variant="secondary" size="sm">⋮</Button>
           </div>
@@ -364,6 +386,13 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
           ))}
         </div>
       </Card>
+
+      {/* Message Dialog */}
+      <MessageDialog
+        isOpen={isMessageDialogOpen}
+        onClose={() => setIsMessageDialogOpen(false)}
+        recipients={[messageRecipient]}
+      />
     </div>
   )
 }
