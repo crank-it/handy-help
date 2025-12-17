@@ -8,6 +8,31 @@ export function getSeason(date: Date): Season {
   return 'spring'                                  // Sep, Oct, Nov
 }
 
+export function getSeasonDates(year: number): Array<{ season: Season; startDate: Date; endDate: Date }> {
+  return [
+    {
+      season: 'summer',
+      startDate: new Date(year - 1, 11, 1), // Dec 1 previous year
+      endDate: new Date(year, 1, 28)        // Feb 28/29
+    },
+    {
+      season: 'autumn',
+      startDate: new Date(year, 2, 1),      // Mar 1
+      endDate: new Date(year, 3, 30)        // Apr 30
+    },
+    {
+      season: 'winter',
+      startDate: new Date(year, 4, 1),      // May 1
+      endDate: new Date(year, 7, 31)        // Aug 31
+    },
+    {
+      season: 'spring',
+      startDate: new Date(year, 8, 1),      // Sep 1
+      endDate: new Date(year, 10, 30)       // Nov 30
+    }
+  ]
+}
+
 export function getFrequencyDays(season: Season, pkg: Package): number | null {
   const frequencies = {
     standard: {

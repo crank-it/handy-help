@@ -129,7 +129,7 @@ export function VisitDetailModal({
             </div>
             <div className="flex flex-col items-end gap-2">
               <div className="font-mono font-bold text-brand-primary">
-                ${visit.price}
+                ${(visit.price_cents / 100).toFixed(0)}
               </div>
               {visit.status === 'completed' ? (
                 <Badge variant="success">Completed</Badge>

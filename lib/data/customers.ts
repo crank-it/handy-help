@@ -81,7 +81,7 @@ export async function getCustomer(id: string): Promise<Customer | null> {
   )
   const averageTime = completedVisits.length > 0
     ? Math.round(totalDuration / completedVisits.length)
-    : null
+    : undefined
 
   return {
     id: customer.id,

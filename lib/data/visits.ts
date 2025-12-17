@@ -5,7 +5,7 @@ import { getPrice } from '@/lib/pricing'
 export function generateCustomerVisits(
   customerId: string,
   packageType: Package,
-  lawnSize: string = 'medium',
+  lawnSize: 'small' | 'medium' | 'large' = 'medium',
   startDate: Date = new Date()
 ) {
   const visits = []

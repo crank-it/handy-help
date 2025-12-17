@@ -195,7 +195,7 @@ export function ActivityFeed({ visits, onVisitUpdate }: ActivityFeedProps) {
                   {/* Right: Price */}
                   <div className="text-right">
                     <div className="font-mono font-bold text-brand-primary text-lg">
-                      ${visit.price}
+                      ${(visit.price_cents / 100).toFixed(0)}
                     </div>
                     {activeTab === 'upcoming' && (
                       <div className="text-xs text-text-muted mt-1">

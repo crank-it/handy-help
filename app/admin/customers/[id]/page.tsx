@@ -30,26 +30,34 @@ const mockCustomer = {
       id: '1',
       scheduled_date: '2025-02-15',
       status: 'scheduled',
-      price: 60,
+      price_cents: 6000,
+      property_issues: undefined,
+      customer_issues: undefined,
+      created_at: '2025-01-01',
     },
     {
       id: '2',
       scheduled_date: '2025-01-18',
       status: 'completed',
-      price: 60,
+      price_cents: 6000,
       completed_at: '2025-01-18T14:30:00',
       actual_duration_minutes: 45,
       completion_notes: 'Lawn in excellent condition. Trimmed edges.',
+      property_issues: undefined,
+      customer_issues: undefined,
+      created_at: '2025-01-01',
     },
     {
       id: '3',
       scheduled_date: '2025-01-04',
       status: 'completed',
-      price: 60,
+      price_cents: 6000,
       completed_at: '2025-01-04T10:15:00',
       actual_duration_minutes: 50,
       completion_notes: 'Lawn was quite long, took a bit more time.',
       property_issues: 'Small hole near the tree - customer aware',
+      customer_issues: undefined,
+      created_at: '2025-01-01',
     },
   ],
 }
@@ -305,7 +313,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
                 </div>
                 <div className="text-right">
                   <div className="font-mono font-semibold text-brand-primary">
-                    ${visit.price}
+                    ${(visit.price_cents / 100).toFixed(0)}
                   </div>
                   {visit.status === 'scheduled' && (
                     <button className="text-sm text-brand-primary hover:text-brand-secondary font-semibold">
