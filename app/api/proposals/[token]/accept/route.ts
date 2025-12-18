@@ -4,10 +4,10 @@ import { generateCustomerVisits } from '@/lib/data/visits'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const { token } = params
+    const { token } = await params
     const supabase = await createClient()
 
     // Fetch proposal by token

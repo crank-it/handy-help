@@ -33,9 +33,10 @@ async function getProposal(token: string) {
 export default async function ProposalPage({
   params,
 }: {
-  params: { token: string }
+  params: Promise<{ token: string }>
 }) {
-  const proposal = await getProposal(params.token)
+  const { token } = await params
+  const proposal = await getProposal(token)
 
   if (!proposal) {
     notFound()
@@ -43,7 +44,7 @@ export default async function ProposalPage({
 
   // Check if already accepted
   if (proposal.status === 'accepted') {
-    redirect(`/proposal/${params.token}/accepted`)
+    redirect(`/proposal/${token}/accepted`)
   }
 
   // Check if expired
