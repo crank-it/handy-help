@@ -1,11 +1,26 @@
 // Core types
 export type LawnSize = 'small' | 'medium' | 'large'
 export type Package = 'standard' | 'premium'
+
+/** @deprecated Season is deprecated for new bookings. Kept for historical data compatibility only. */
 export type Season = 'summer' | 'autumn' | 'winter' | 'spring'
+
 export type VisitStatus = 'scheduled' | 'completed' | 'skipped' | 'rescheduled'
-export type CustomerStatus = 'pending_assessment' | 'active' | 'paused' | 'cancelled'
+
+export type CustomerStatus =
+  | 'pending_inspection'    // New: Initial booking, waiting for inspection
+  | 'inspection_scheduled'  // New: Inspection time booked via Calendly
+  | 'proposal_sent'         // New: Proposal created and sent to customer
+  | 'active'                // Existing: Proposal accepted, service active
+  | 'paused'                // Existing: Service temporarily paused
+  | 'cancelled'             // Existing: Service cancelled
+  | 'pending_assessment'    // Legacy: Keep for old records
+
 export type PaymentMethod = 'bank_transfer' | 'cash'
 export type PaymentStatus = 'pending' | 'paid'
+
+// Service selection types
+export type Service = 'lawn_clearing' | 'edge_trimming' | 'hedging' | 'other'
 
 // Messaging types
 export type MessageDirection = 'outbound' | 'inbound'
@@ -21,12 +36,13 @@ export type ServiceType = 'lawn_care' | 'gardening' | 'cleaning' | 'handyman'
 export interface BookingData {
   address: string
   suburb?: string
-  lawnSize?: LawnSize
-  package?: Package
+  services: Service[]
+  otherServiceDescription?: string
   name?: string
   email?: string
   phone?: string
   notes?: string
+  inspectionBooked?: boolean
   customerId?: string
 }
 
@@ -51,11 +67,23 @@ export interface Customer {
   phone: string
   address: string
   suburb?: string
-  lawn_size: LawnSize
-  package_type: Package
+
+  // Service selection (new booking flow)
+  services?: Service[]
+  other_service_description?: string
+
+  // Lawn details (determined after inspection)
+  lawn_size?: LawnSize
+  package_type?: Package
+
   special_instructions?: string
   status: CustomerStatus
   start_date?: string
+
+  // Inspection tracking
+  inspection_booked_at?: string
+  calendly_event_id?: string
+  proposal_accepted_at?: string
 
   // Performance metrics
   average_completion_time?: number // in minutes
@@ -108,6 +136,32 @@ export interface Payment {
   notes?: string
   paid_at?: string
   created_at: string
+}
+
+// Proposals
+export interface Proposal {
+  id: string
+  customer_id: string
+  token: string
+
+  // Proposal details (determined after inspection)
+  lawn_size: LawnSize
+  package_type: Package
+  visit_frequency_days: number
+  price_per_visit_cents: number
+  estimated_annual_visits: number
+
+  // Additional services and notes
+  included_services: string[]
+  notes?: string
+
+  // Status tracking
+  status: 'sent' | 'accepted' | 'rejected' | 'expired'
+  accepted_at?: string
+  expires_at: string
+
+  created_at: string
+  updated_at?: string
 }
 
 // Property Assessment

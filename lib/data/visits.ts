@@ -1,7 +1,10 @@
-import { Package, Season } from '@/types'
-import { getSeason, getSeasonDates } from '@/lib/scheduling'
+import { Package } from '@/types'
 import { getPrice } from '@/lib/pricing'
 
+/**
+ * Generate customer visits with simplified fixed frequency scheduling
+ * (Seasonal scheduling has been replaced with consistent year-round service)
+ */
 export function generateCustomerVisits(
   customerId: string,
   packageType: Package,
@@ -13,41 +16,13 @@ export function generateCustomerVisits(
   const endDate = new Date(startDate)
   endDate.setFullYear(endDate.getFullYear() + 1)
 
-  // Skip to start of next season if we're mid-season
-  const currentSeason = getSeason(currentDate)
-  const seasonDates = getSeasonDates(currentDate.getFullYear())
-  const nextSeasonStart = seasonDates.find(
-    (s) => s.season === currentSeason
-  )?.endDate
-  if (nextSeasonStart) {
-    currentDate = new Date(nextSeasonStart)
-    currentDate.setDate(currentDate.getDate() + 1)
-  }
+  // Fixed frequency (days between visits)
+  const frequencyDays = getFrequencyDays(packageType)
+
+  // Calculate price for visits
+  const price = getPrice(lawnSize, packageType)
 
   while (currentDate <= endDate) {
-    const season = getSeason(currentDate)
-
-    // Get frequency for this season and package
-    const frequency = getFrequency(season, packageType)
-
-    // Skip winter for standard package
-    if (frequency === 0) {
-      // Move to next season
-      const seasonEnd = getSeasonDates(currentDate.getFullYear()).find(
-        (s) => s.season === season
-      )?.endDate
-      if (seasonEnd) {
-        currentDate = new Date(seasonEnd)
-        currentDate.setDate(currentDate.getDate() + 1)
-      } else {
-        break
-      }
-      continue
-    }
-
-    // Calculate price for this visit
-    const price = getPrice(lawnSize, packageType)
-
     // Create visit
     visits.push({
       customer_id: customerId,
@@ -55,25 +30,28 @@ export function generateCustomerVisits(
       status: 'scheduled',
       estimated_duration_minutes: getEstimatedDuration(lawnSize),
       price_cents: Math.round(price * 100),
-      season,
+      // Note: season field deprecated for new visits
     })
 
     // Move to next visit date
     currentDate = new Date(currentDate)
-    currentDate.setDate(currentDate.getDate() + frequency)
+    currentDate.setDate(currentDate.getDate() + frequencyDays)
   }
 
   return visits
 }
 
-function getFrequency(season: Season, packageType: Package): number {
-  const frequencies: Record<Season, Record<Package, number>> = {
-    summer: { standard: 28, premium: 14 },
-    autumn: { standard: 35, premium: 21 },
-    winter: { standard: 0, premium: 30 },
-    spring: { standard: 28, premium: 18 },
+/**
+ * Get fixed frequency in days based on package type
+ * Standard: Every 4 weeks (28 days)
+ * Premium: Every 2 weeks (14 days)
+ */
+function getFrequencyDays(packageType: Package): number {
+  const frequencies: Record<Package, number> = {
+    standard: 28,  // Every 4 weeks
+    premium: 14,   // Every 2 weeks
   }
-  return frequencies[season][packageType]
+  return frequencies[packageType]
 }
 
 function getEstimatedDuration(lawnSize: string): number {

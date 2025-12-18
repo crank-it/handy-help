@@ -85,6 +85,23 @@ export default function PropertyAssessmentPage({
   // General notes
   const [generalNotes, setGeneralNotes] = useState('')
 
+  // Proposal Recommendations
+  const [recommendedLawnSize, setRecommendedLawnSize] = useState<'small' | 'medium' | 'large' | ''>('')
+  const [recommendedPackage, setRecommendedPackage] = useState<'standard' | 'premium' | ''>('')
+  const [visitFrequency, setVisitFrequency] = useState('')
+  const [pricePerVisit, setPricePerVisit] = useState('')
+  const [includedServices, setIncludedServices] = useState<{
+    lawn_clearing: boolean
+    edge_trimming: boolean
+    hedging: boolean
+  }>({
+    lawn_clearing: true,
+    edge_trimming: true,
+    hedging: false,
+  })
+  const [proposalNotes, setProposalNotes] = useState('')
+  const [isCreatingProposal, setIsCreatingProposal] = useState(false)
+
   const handlePhotoCapture = (
     e: React.ChangeEvent<HTMLInputElement>,
     category: AssessmentPhoto['category']
@@ -109,6 +126,61 @@ export default function PropertyAssessmentPage({
 
   const removePhoto = (photoId: string) => {
     setPhotos((prev) => prev.filter((p) => p.id !== photoId))
+  }
+
+  const handleCreateProposal = async () => {
+    // Validate proposal fields
+    if (!recommendedLawnSize || !recommendedPackage || !visitFrequency || !pricePerVisit) {
+      alert('Please fill in all proposal fields')
+      return
+    }
+
+    setIsCreatingProposal(true)
+
+    try {
+      // Calculate estimated annual visits
+      const frequency = parseInt(visitFrequency)
+      const estimatedAnnualVisits = Math.floor(365 / frequency)
+
+      // Build included services array
+      const servicesArray = Object.entries(includedServices)
+        .filter(([_, included]) => included)
+        .map(([service]) => service)
+
+      // Create proposal
+      const response = await fetch('/api/proposals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerId: params.id,
+          lawnSize: recommendedLawnSize,
+          packageType: recommendedPackage,
+          visitFrequencyDays: frequency,
+          pricePerVisitCents: Math.round(parseFloat(pricePerVisit) * 100),
+          estimatedAnnualVisits,
+          includedServices: servicesArray,
+          notes: proposalNotes,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create proposal')
+      }
+
+      const data = await response.json()
+
+      alert(`Proposal created successfully!\n\nProposal URL:\n${data.proposalUrl}\n\nSend this link to the customer via WhatsApp or email.`)
+
+      // Optionally redirect to customer page
+      router.push(`/admin/customers/${params.id}`)
+    } catch (error) {
+      console.error('Error creating proposal:', error)
+      alert('Failed to create proposal. Please try again.')
+    } finally {
+      setIsCreatingProposal(false)
+    }
   }
 
   const handleSaveAssessment = async () => {
@@ -799,6 +871,134 @@ export default function PropertyAssessmentPage({
           placeholder="Any other important information about this property..."
           rows={4}
         />
+      </Card>
+
+      {/* Proposal Recommendations */}
+      <Card className="mb-6 bg-blue-50 border-blue-200">
+        <h2 className="text-xl font-semibold text-brand-primary mb-4 flex items-center gap-2">
+          <CheckCircle2 size={24} />
+          Proposal Recommendations
+        </h2>
+
+        <div className="space-y-4">
+          {/* Lawn Size */}
+          <div>
+            <label className="block text-sm font-semibold text-text-primary mb-2">
+              Recommended Lawn Size
+            </label>
+            <select
+              value={recommendedLawnSize}
+              onChange={(e) => setRecommendedLawnSize(e.target.value as any)}
+              className="w-full px-4 py-3 border-2 border-border rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-colors"
+            >
+              <option value="">Select lawn size</option>
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
+
+          {/* Package */}
+          <div>
+            <label className="block text-sm font-semibold text-text-primary mb-2">
+              Recommended Package
+            </label>
+            <select
+              value={recommendedPackage}
+              onChange={(e) => setRecommendedPackage(e.target.value as any)}
+              className="w-full px-4 py-3 border-2 border-border rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-colors"
+            >
+              <option value="">Select package</option>
+              <option value="standard">Standard (every 4 weeks)</option>
+              <option value="premium">Premium (every 2 weeks)</option>
+            </select>
+          </div>
+
+          {/* Visit Frequency */}
+          <div>
+            <label className="block text-sm font-semibold text-text-primary mb-2">
+              Visit Frequency (days)
+            </label>
+            <select
+              value={visitFrequency}
+              onChange={(e) => setVisitFrequency(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-border rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-colors"
+            >
+              <option value="">Select frequency</option>
+              <option value="14">Every 14 days (2 weeks)</option>
+              <option value="21">Every 21 days (3 weeks)</option>
+              <option value="28">Every 28 days (4 weeks)</option>
+            </select>
+          </div>
+
+          {/* Price Per Visit */}
+          <Input
+            label="Price Per Visit ($)"
+            type="number"
+            step="0.01"
+            value={pricePerVisit}
+            onChange={(e) => setPricePerVisit(e.target.value)}
+            placeholder="e.g., 65.00"
+            helperText="Enter the price in dollars (e.g., 65.00)"
+          />
+
+          {/* Included Services */}
+          <div>
+            <label className="block text-sm font-semibold text-text-primary mb-3">
+              Services Included in Proposal
+            </label>
+            <div className="space-y-2">
+              {Object.entries({
+                lawn_clearing: 'Lawn Clearing',
+                edge_trimming: 'Edge Trimming',
+                hedging: 'Hedging',
+              }).map(([key, label]) => (
+                <label
+                  key={key}
+                  className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-brand-primary/5 transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={includedServices[key as keyof typeof includedServices]}
+                    onChange={(e) =>
+                      setIncludedServices((prev) => ({
+                        ...prev,
+                        [key]: e.target.checked,
+                      }))
+                    }
+                    className="w-5 h-5 text-brand-primary rounded focus:ring-2 focus:ring-brand-primary"
+                  />
+                  <span className="font-semibold text-text-primary">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Proposal Notes */}
+          <Textarea
+            label="Proposal Notes"
+            value={proposalNotes}
+            onChange={(e) => setProposalNotes(e.target.value)}
+            placeholder="Any additional notes or special conditions for this proposal..."
+            rows={3}
+          />
+
+          {/* Generate Proposal Button */}
+          <div className="pt-4 border-t border-blue-300">
+            <Button
+              variant="primary"
+              onClick={handleCreateProposal}
+              isLoading={isCreatingProposal}
+              className="w-full"
+              size="lg"
+            >
+              Generate & Send Proposal
+            </Button>
+            <p className="text-sm text-text-secondary mt-2 text-center">
+              This will create a proposal and provide you with a link to send to the customer
+            </p>
+          </div>
+        </div>
       </Card>
 
       {/* Save Button */}

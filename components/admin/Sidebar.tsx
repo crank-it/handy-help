@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Home, Calendar, Users, DollarSign, Menu, X, MessageCircle } from 'lucide-react'
+import { Home, Calendar, Users, DollarSign, Menu, X, MessageCircle, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
@@ -11,6 +11,7 @@ const navigation = [
   { name: 'Dashboard', href: '/admin', icon: Home },
   { name: 'Schedule', href: '/admin/schedule', icon: Calendar },
   { name: 'Customers', href: '/admin/customers', icon: Users },
+  { name: 'Proposals', href: '/admin/proposals', icon: FileText },
   { name: 'Messages', href: '/admin/messages', icon: MessageCircle },
   { name: 'Earnings', href: '/admin/earnings', icon: DollarSign },
 ]
