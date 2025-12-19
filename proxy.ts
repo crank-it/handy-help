@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Only protect /admin routes (except /admin/login and /admin/logout)
   if (request.nextUrl.pathname.startsWith('/admin') &&
       request.nextUrl.pathname !== '/admin/login' &&
@@ -65,7 +65,7 @@ export async function middleware(request: NextRequest) {
       return response
     } catch (error) {
       // Error in middleware - redirect to login
-      console.error('Middleware error:', error)
+      console.error('Proxy error:', error)
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
   }
@@ -74,8 +74,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/admin/:path*',
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ]
+  // ONLY match /admin routes - don't intercept everything
+  matcher: ['/admin/:path*']
 }
