@@ -18,6 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://handyhelp.nz'),
   title: "Handy Help NZ - Local help you can count on",
   description: "Professional lawn care for Dunedin homes. Run by William, a 15-year-old entrepreneur supported by 20 years of business experience.",
   openGraph: {

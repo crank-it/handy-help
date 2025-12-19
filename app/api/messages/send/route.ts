@@ -9,7 +9,7 @@ import {
   updateBulkMessageStats,
   getTemplate,
 } from '@/lib/data/messages'
-import type { MessageContextType, Customer } from '@/types'
+import type { MessageContextType } from '@/types'
 
 interface SendMessageBody {
   // Recipients - can use either customer IDs or direct phone numbers

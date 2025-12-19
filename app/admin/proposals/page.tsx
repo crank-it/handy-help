@@ -6,9 +6,20 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { FileText, Copy, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
+import { Proposal } from '@/types'
+
+type ProposalWithCustomer = Proposal & {
+  customers?: {
+    name: string
+    phone: string
+    email?: string
+    address?: string
+    suburb?: string
+  }
+}
 
 export default function ProposalsPage() {
-  const [proposals, setProposals] = useState<any[]>([])
+  const [proposals, setProposals] = useState<ProposalWithCustomer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'sent' | 'accepted' | 'rejected' | 'expired'>('all')
 

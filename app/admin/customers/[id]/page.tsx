@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { MessageDialog, type MessageRecipient } from '@/components/admin/MessageDialog'
 import { createClient } from '@/lib/supabase/client'
-import { Customer } from '@/types'
+import { Customer, Visit } from '@/types'
 
 // Helper to calculate price per visit
 function getPricePerVisit(lawnSize: string, packageType: string): number {
@@ -21,8 +21,8 @@ function getPricePerVisit(lawnSize: string, packageType: string): number {
 }
 
 export default function CustomerDetailPage({ params }: { params: { id: string } }) {
-  const [customer, setCustomer] = useState<any | null>(null)
-  const [visits, setVisits] = useState<any[]>([])
+  const [customer, setCustomer] = useState<Customer | null>(null)
+  const [visits, setVisits] = useState<Visit[]>([])
   const [loading, setLoading] = useState(true)
   const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false)
 
@@ -142,7 +142,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
       </Link>
 
       {/* Assessment Alert */}
-      {customer.status === 'pending_assessment' && !customer.has_assessment && (
+      {customer.status === 'pending_assessment' && (
         <Card className="mb-6 border-2 border-warning bg-warning/5">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-warning/10 rounded-lg">
@@ -239,7 +239,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
               <div className="flex justify-between">
                 <span className="text-text-muted">Price per visit:</span>
                 <span className="font-mono font-bold text-brand-primary">
-                  ${getPricePerVisit(customer.lawn_size, customer.package_type)}
+                  ${getPricePerVisit(customer.lawn_size || 'medium', customer.package_type || 'standard')}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -261,67 +261,25 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
             <p className="text-text-primary">{customer.special_instructions}</p>
           </div>
         )}
-
-        {/* Assessment Summary (shown when completed) */}
-        {customer.has_assessment && (
-          <div className="mt-6 pt-6 border-t border-border">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm text-text-muted font-semibold flex items-center gap-2">
-                <ClipboardCheck size={16} />
-                Property Assessment
-              </h3>
-              <Link
-                href={`/admin/customers/${customer.id}/assessment`}
-                className="text-sm text-brand-primary hover:text-brand-secondary font-semibold"
-              >
-                View Full Assessment →
-              </Link>
-            </div>
-            <div className="grid md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-text-muted">Access:</span>
-                <span className="ml-2 text-text-primary font-semibold">
-                  Gate code documented
-                </span>
-              </div>
-              <div>
-                <span className="text-text-muted">Lawn Condition:</span>
-                <span className="ml-2 text-text-primary font-semibold capitalize">
-                  Good
-                </span>
-              </div>
-              <div>
-                <span className="text-text-muted">Equipment:</span>
-                <span className="ml-2 text-text-primary font-semibold">
-                  Trimmer, Blower
-                </span>
-              </div>
-              <div>
-                <span className="text-text-muted">Est. Time:</span>
-                <span className="ml-2 text-text-primary font-semibold">45 mins</span>
-              </div>
-            </div>
-          </div>
-        )}
       </Card>
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <Card className="text-center">
           <div className="font-mono text-2xl font-bold text-brand-primary mb-1">
-            {customer.stats.total_visits}
+            {customer.total_visits || 0}
           </div>
           <div className="text-sm text-text-muted">Total Visits</div>
         </Card>
         <Card className="text-center">
           <div className="font-mono text-2xl font-bold text-success mb-1">
-            {customer.stats.completed_visits}
+            {customer.completed_visits || 0}
           </div>
           <div className="text-sm text-text-muted">Completed</div>
         </Card>
         <Card className="text-center">
           <div className="font-mono text-2xl font-bold text-brand-primary mb-1">
-            ${customer.stats.total_paid}
+            ${(customer.total_paid_cents || 0) / 100}
           </div>
           <div className="text-sm text-text-muted">Total Paid</div>
         </Card>

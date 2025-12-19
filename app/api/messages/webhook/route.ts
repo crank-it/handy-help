@@ -91,7 +91,7 @@ async function handleMetaWebhook(body: MetaWebhookBody) {
 
 // Handle Twilio webhooks
 async function handleTwilioWebhook(body: TwilioWebhookBody) {
-  const { From, To, Body, MessageSid, SmsStatus } = body
+  const { From, Body, MessageSid, SmsStatus } = body
 
   if (SmsStatus) {
     // Status update

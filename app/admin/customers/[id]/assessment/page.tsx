@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowLeft, Camera, Save, CheckCircle2 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -144,7 +145,7 @@ export default function PropertyAssessmentPage({
 
       // Build included services array
       const servicesArray = Object.entries(includedServices)
-        .filter(([_, included]) => included)
+        .filter(([, included]) => included)
         .map(([service]) => service)
 
       // Create proposal
@@ -211,7 +212,7 @@ export default function PropertyAssessmentPage({
       avoid_sprinkler_locations: hasSprinklers === 'yes' ? sprinklerLocations.split(',').filter(Boolean) : [],
       service_clipping_disposal: clippingDisposal,
       service_equipment_needed: Object.entries(equipmentNeeded)
-        .filter(([_, checked]) => checked)
+        .filter(([, checked]) => checked)
         .map(([key]) => key),
       service_special_requests: specialRequests,
       service_estimated_time: estimatedTime ? parseInt(estimatedTime) : undefined,
@@ -307,7 +308,7 @@ export default function PropertyAssessmentPage({
             </label>
             <select
               value={parkingType}
-              onChange={(e) => setParkingType(e.target.value as any)}
+              onChange={(e) => setParkingType(e.target.value as 'driveway' | 'street' | 'other' | '')}
               className="w-full px-4 py-3 border-2 border-border rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-colors"
             >
               <option value="">Select parking type</option>
@@ -332,7 +333,7 @@ export default function PropertyAssessmentPage({
             </label>
             <select
               value={entryPoint}
-              onChange={(e) => setEntryPoint(e.target.value as any)}
+              onChange={(e) => setEntryPoint(e.target.value as 'front_gate' | 'side_gate' | 'back_gate' | 'other' | '')}
               className="w-full px-4 py-3 border-2 border-border rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-colors"
             >
               <option value="">Select entry point</option>
@@ -358,7 +359,7 @@ export default function PropertyAssessmentPage({
             </label>
             <select
               value={lockType}
-              onChange={(e) => setLockType(e.target.value as any)}
+              onChange={(e) => setLockType(e.target.value as 'none' | 'padlock' | 'combination' | 'sliding_bolt' | 'other' | '')}
               className="w-full px-4 py-3 border-2 border-border rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-colors"
             >
               <option value="">Select lock type</option>
@@ -759,7 +760,7 @@ export default function PropertyAssessmentPage({
             </label>
             <select
               value={clippingDisposal}
-              onChange={(e) => setClippingDisposal(e.target.value as any)}
+              onChange={(e) => setClippingDisposal(e.target.value as 'compost' | 'green_bin' | 'take_away' | 'leave' | '')}
               className="w-full px-4 py-3 border-2 border-border rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-colors"
             >
               <option value="">Select disposal method</option>
@@ -837,9 +838,11 @@ export default function PropertyAssessmentPage({
                 key={photo.id}
                 className="relative group rounded-lg overflow-hidden border-2 border-border"
               >
-                <img
+                <Image
                   src={photo.url}
                   alt={photo.category}
+                  width={200}
+                  height={128}
                   className="w-full h-32 object-cover"
                 />
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -888,7 +891,7 @@ export default function PropertyAssessmentPage({
             </label>
             <select
               value={recommendedLawnSize}
-              onChange={(e) => setRecommendedLawnSize(e.target.value as any)}
+              onChange={(e) => setRecommendedLawnSize(e.target.value as 'small' | 'medium' | 'large' | '')}
               className="w-full px-4 py-3 border-2 border-border rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-colors"
             >
               <option value="">Select lawn size</option>
@@ -905,7 +908,7 @@ export default function PropertyAssessmentPage({
             </label>
             <select
               value={recommendedPackage}
-              onChange={(e) => setRecommendedPackage(e.target.value as any)}
+              onChange={(e) => setRecommendedPackage(e.target.value as 'standard' | 'premium' | '')}
               className="w-full px-4 py-3 border-2 border-border rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-colors"
             >
               <option value="">Select package</option>

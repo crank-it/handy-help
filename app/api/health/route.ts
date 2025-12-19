@@ -21,8 +21,8 @@ export async function GET() {
   try {
     const supabase = await createClient()
 
-    // Try to query the database
-    const { data, error } = await supabase
+    // Try to query the database - data variable not used, just checking connection
+    const { error } = await supabase
       .from('customers')
       .select('count')
       .limit(1)
@@ -40,10 +40,10 @@ export async function GET() {
       .eq('table_schema', 'public')
 
     if (tables) {
-      checks.database.tables = tables.map((t: any) => t.table_name)
+      checks.database.tables = tables.map((t: { table_name: string }) => t.table_name)
     }
-  } catch (error: any) {
-    checks.database.error = error.message
+  } catch (error: unknown) {
+    checks.database.error = error instanceof Error ? error.message : 'Unknown error'
   }
 
   const allGood =

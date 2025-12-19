@@ -78,7 +78,7 @@ export default async function AdminDashboard() {
       {/* Today's Schedule */}
       <Card className="mb-8">
         <h2 className="text-xl font-semibold text-brand-primary mb-4">
-          Today's Schedule
+          Today&apos;s Schedule
         </h2>
 
         {todayVisits.length === 0 ? (

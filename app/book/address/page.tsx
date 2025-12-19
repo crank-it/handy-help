@@ -43,7 +43,7 @@ export default function AddressPage() {
 
         <div className="bg-white rounded-xl p-8 border border-border">
           <h1 className="text-3xl font-bold text-brand-primary mb-2">
-            Where's Your Lawn?
+            Where&apos;s Your Lawn?
           </h1>
           <p className="text-text-secondary mb-8">
             Enter your address for professional lawn care.
