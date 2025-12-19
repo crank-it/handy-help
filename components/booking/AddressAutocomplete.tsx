@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Loader } from '@googlemaps/js-api-loader'
+// import { Loader } from '@googlemaps/js-api-loader'
 import { Input } from '@/components/ui/Input'
 
 // Dunedin bounds for biasing results to service area
@@ -56,98 +56,22 @@ export function AddressAutocomplete({
   const [warning, setWarning] = useState<string>('')
 
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+    // TODO: Re-enable Google Maps autocomplete when API is properly configured
+    // For now, using simple text input
+    setIsLoaded(true)
 
-    if (!apiKey) {
-      console.error('Google Maps API key not found')
-      return
-    }
+    // const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+    // if (!apiKey) {
+    //   console.error('Google Maps API key not found')
+    //   return
+    // }
 
-    const loader = new Loader({
-      apiKey,
-      version: 'weekly',
-      libraries: ['places'],
-    })
-
-    loader
-      .load()
-      .then(() => {
-        setIsLoaded(true)
-
-        if (!inputRef.current) return
-
-        // Initialize autocomplete
-        const autocomplete = new google.maps.places.Autocomplete(
-          inputRef.current,
-          {
-            componentRestrictions: { country: 'nz' },
-            bounds: {
-              north: DUNEDIN_BOUNDS.north,
-              south: DUNEDIN_BOUNDS.south,
-              east: DUNEDIN_BOUNDS.east,
-              west: DUNEDIN_BOUNDS.west,
-            },
-            fields: ['address_components', 'formatted_address', 'geometry'],
-            types: ['address'],
-          }
-        )
-
-        autocompleteRef.current = autocomplete
-
-        // Listen for place selection
-        autocomplete.addListener('place_changed', () => {
-          const place = autocomplete.getPlace()
-
-          if (!place.formatted_address) {
-            return
-          }
-
-          // Update address value
-          onChange(place.formatted_address)
-
-          // Extract suburb from address components
-          const addressComponents = place.address_components || []
-          let suburb = ''
-
-          for (const component of addressComponents) {
-            if (component.types.includes('locality')) {
-              suburb = component.long_name
-              break
-            }
-            if (component.types.includes('sublocality')) {
-              suburb = component.long_name
-              break
-            }
-          }
-
-          // Validate service area
-          const isInServiceArea = validateServiceArea(place, suburb)
-          if (!isInServiceArea) {
-            setWarning(
-              'This address may be outside our service area. Book anyway and we\'ll confirm availability.'
-            )
-          } else {
-            setWarning('')
-          }
-
-          // Call callbacks
-          if (suburb && onSuburbExtracted) {
-            onSuburbExtracted(suburb)
-          }
-          if (onPlaceSelect) {
-            onPlaceSelect(place)
-          }
-        })
-      })
-      .catch((error) => {
-        console.error('Error loading Google Maps:', error)
-      })
-
-    return () => {
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current)
-      }
-    }
+    // Cleanup commented out until Google Maps is re-enabled
+    // return () => {
+    //   if (autocompleteRef.current) {
+    //     google.maps.event.clearInstanceListeners(autocompleteRef.current)
+    //   }
+    // }
   }, [onChange, onPlaceSelect, onSuburbExtracted])
 
   // Validate if address is within service area

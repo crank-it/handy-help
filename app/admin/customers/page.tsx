@@ -145,7 +145,7 @@ export default function CustomersPage() {
                   <span className="text-xs text-text-muted block">({customer.lawn_size})</span>
                 </td>
                 <td className="p-4 font-mono font-semibold text-brand-primary">
-                  ${getPricePerVisit(customer.lawn_size, customer.package_type)}
+                  ${getPricePerVisit(customer.lawn_size || 'medium', customer.package_type || 'standard')}
                 </td>
                 <td className="p-4">{getStatusBadge(customer.status)}</td>
                 <td className="p-4">
@@ -185,7 +185,7 @@ export default function CustomersPage() {
                 {customer.package_type} ({customer.lawn_size})
               </span>
               <span className="font-mono font-semibold text-brand-primary">
-                ${getPricePerVisit(customer.lawn_size, customer.package_type)}
+                ${getPricePerVisit(customer.lawn_size || 'medium', customer.package_type || 'standard')}
               </span>
             </div>
           </Link>

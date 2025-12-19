@@ -106,7 +106,7 @@ export default function ServicesPage() {
           Back
         </Link>
 
-        <ProgressBar currentStep={2} totalSteps={5} />
+        <ProgressBar currentStep={2} totalSteps={5} stepName="Select Services" />
 
         <h1 className="text-3xl md:text-4xl font-bold text-brand-primary mb-2">
           What services do you need?

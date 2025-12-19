@@ -61,7 +61,7 @@ export default function InspectionPage() {
           Back
         </Link>
 
-        <ProgressBar currentStep={4} totalSteps={5} />
+        <ProgressBar currentStep={4} totalSteps={5} stepName="Schedule Inspection" />
 
         <div className="mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-brand-primary mb-2">

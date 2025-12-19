@@ -214,7 +214,7 @@ export default async function ProposalPage({
         {/* Actions */}
         {!isExpired && proposal.status === 'sent' && (
           <div className="flex flex-col sm:flex-row gap-3">
-            <form action={`/api/proposals/${params.token}/accept`} method="POST" className="flex-1">
+            <form action={`/api/proposals/${token}/accept`} method="POST" className="flex-1">
               <Button
                 type="submit"
                 variant="primary"

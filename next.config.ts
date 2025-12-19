@@ -1,10 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Optimize font loading
-  optimizeFonts: true,
-
-  // Ensure experimental features are properly configured
+  // Experimental features
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
