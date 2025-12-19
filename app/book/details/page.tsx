@@ -17,14 +17,17 @@ export default function DetailsPage() {
   const [email, setEmail] = useState(bookingData.email || '')
   const [notes, setNotes] = useState(bookingData.notes || '')
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     // Redirect if previous steps not completed
-    if (!bookingData.package || !bookingData.lawnSize) {
-      router.push('/book/package')
+    if (!bookingData.address) {
+      router.push('/book/address')
+      return
     }
-  }, [bookingData.package, bookingData.lawnSize, router])
+    if (!bookingData.services || bookingData.services.length === 0) {
+      router.push('/book/services')
+    }
+  }, [bookingData.address, bookingData.services, router])
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -43,67 +46,32 @@ export default function DetailsPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async () => {
+  const handleContinue = () => {
     if (!validate()) return
 
-    setIsSubmitting(true)
+    // Save contact details to booking context
+    updateBookingData({
+      name,
+      phone,
+      email: email || undefined,
+      notes: notes || undefined,
+    })
 
-    try {
-      // Submit booking to API
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: bookingData.address,
-          suburb: bookingData.suburb,
-          lawnSize: bookingData.lawnSize,
-          packageType: bookingData.package,
-          name,
-          phone,
-          email: email || undefined,
-          specialInstructions: notes || undefined,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create booking')
-      }
-
-      const data = await response.json()
-
-      // Update booking data with customer ID
-      updateBookingData({
-        name,
-        phone,
-        email,
-        notes,
-        customerId: data.customerId
-      })
-
-      router.push('/book/confirm')
-    } catch (error) {
-      console.error('Booking error:', error)
-      setErrors({
-        submit: 'Failed to create booking. Please try again or contact us directly.'
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+    // Navigate to inspection booking
+    router.push('/book/inspection')
   }
 
   return (
     <div className="min-h-screen bg-bg-page py-12">
       <div className="container mx-auto px-4 max-w-2xl">
         <Link
-          href="/book/schedule"
+          href="/book/services"
           className="text-brand-primary hover:text-brand-secondary font-semibold mb-6 inline-block"
         >
           ← Back
         </Link>
 
-        <ProgressBar currentStep={5} totalSteps={5} stepName="Your Details" />
+        <ProgressBar currentStep={3} totalSteps={5} stepName="Your Details" />
 
         <div className="bg-white rounded-xl p-8 border border-border">
           <h1 className="text-3xl font-bold text-brand-primary mb-2">
@@ -169,20 +137,13 @@ export default function DetailsPage() {
               </p>
             </div>
 
-            {errors.submit && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-sm text-red-800">{errors.submit}</p>
-              </div>
-            )}
-
             <Button
               variant="primary"
               size="lg"
               className="w-full"
-              onClick={handleSubmit}
-              isLoading={isSubmitting}
+              onClick={handleContinue}
             >
-              Complete Booking
+              Continue to Inspection Booking →
             </Button>
           </div>
         </div>

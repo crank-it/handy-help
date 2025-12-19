@@ -1,11 +1,33 @@
 // Core types
 export type LawnSize = 'small' | 'medium' | 'large'
 export type Package = 'standard' | 'premium'
+
+/** @deprecated Season is deprecated for new bookings. Kept for historical data compatibility only. */
 export type Season = 'summer' | 'autumn' | 'winter' | 'spring'
+
 export type VisitStatus = 'scheduled' | 'completed' | 'skipped' | 'rescheduled'
-export type CustomerStatus = 'pending_assessment' | 'active' | 'paused' | 'cancelled'
+
+export type CustomerStatus =
+  | 'pending_inspection'    // New: Initial booking, waiting for inspection
+  | 'inspection_scheduled'  // New: Inspection time booked via Calendly
+  | 'proposal_sent'         // New: Proposal created and sent to customer
+  | 'active'                // Existing: Proposal accepted, service active
+  | 'paused'                // Existing: Service temporarily paused
+  | 'cancelled'             // Existing: Service cancelled
+  | 'pending_assessment'    // Legacy: Keep for old records
+
 export type PaymentMethod = 'bank_transfer' | 'cash'
 export type PaymentStatus = 'pending' | 'paid'
+
+// Service selection types
+export type Service = 'lawn_clearing' | 'edge_trimming' | 'hedging' | 'other'
+
+// Messaging types
+export type MessageDirection = 'outbound' | 'inbound'
+export type MessageStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'failed'
+export type MessageContextType = 'manual' | 'reminder' | 'weather' | 'delay' | 'on_the_way' | 'sick_day' | 'follow_up' | 'bulk' | 'reply'
+export type TemplateCategory = 'reminder' | 'weather' | 'delay' | 'on_the_way' | 'sick_day' | 'follow_up' | 'general'
+export type BulkMessageStatus = 'pending' | 'sending' | 'completed' | 'partial_failure'
 
 // Future: Service types for platform expansion
 export type ServiceType = 'lawn_care' | 'gardening' | 'cleaning' | 'handyman'
@@ -14,12 +36,13 @@ export type ServiceType = 'lawn_care' | 'gardening' | 'cleaning' | 'handyman'
 export interface BookingData {
   address: string
   suburb?: string
-  lawnSize?: LawnSize
-  package?: Package
+  services: Service[]
+  otherServiceDescription?: string
   name?: string
   email?: string
   phone?: string
   notes?: string
+  inspectionBooked?: boolean
   customerId?: string
 }
 
@@ -44,11 +67,23 @@ export interface Customer {
   phone: string
   address: string
   suburb?: string
-  lawn_size: LawnSize
-  package_type: Package
+
+  // Service selection (new booking flow)
+  services?: Service[]
+  other_service_description?: string
+
+  // Lawn details (determined after inspection)
+  lawn_size?: LawnSize
+  package_type?: Package
+
   special_instructions?: string
   status: CustomerStatus
   start_date?: string
+
+  // Inspection tracking
+  inspection_booked_at?: string
+  calendly_event_id?: string
+  proposal_accepted_at?: string
 
   // Performance metrics
   average_completion_time?: number // in minutes
@@ -101,6 +136,32 @@ export interface Payment {
   notes?: string
   paid_at?: string
   created_at: string
+}
+
+// Proposals
+export interface Proposal {
+  id: string
+  customer_id: string
+  token: string
+
+  // Proposal details (determined after inspection)
+  lawn_size: LawnSize
+  package_type: Package
+  visit_frequency_days: number
+  price_per_visit_cents: number
+  estimated_annual_visits: number
+
+  // Additional services and notes
+  included_services: string[]
+  notes?: string
+
+  // Status tracking
+  status: 'sent' | 'accepted' | 'rejected' | 'expired'
+  accepted_at?: string
+  expires_at: string
+
+  created_at: string
+  updated_at?: string
 }
 
 // Property Assessment
@@ -156,4 +217,70 @@ export interface PropertyAssessment {
   assessed_by: string
   assessed_at: string
   notes?: string
+}
+
+// Messaging entities
+export interface Message {
+  id: string
+  customer_id?: string
+  customer_name?: string
+  phone_number: string
+  message_body: string
+  template_id?: string
+  direction: MessageDirection
+  status: MessageStatus
+  whatsapp_message_id?: string
+  error_message?: string
+  context_type?: MessageContextType
+  context_id?: string
+  bulk_message_id?: string
+  sent_at?: string
+  delivered_at?: string
+  read_at?: string
+  created_at: string
+  updated_at?: string
+}
+
+export interface MessageTemplate {
+  id: string
+  name: string
+  category: TemplateCategory
+  template_body: string
+  whatsapp_template_name?: string
+  whatsapp_template_namespace?: string
+  is_active: boolean
+  created_at: string
+  updated_at?: string
+}
+
+export interface BulkMessage {
+  id: string
+  message_body: string
+  template_id?: string
+  total_recipients: number
+  sent_count: number
+  delivered_count: number
+  failed_count: number
+  status: BulkMessageStatus
+  started_at?: string
+  completed_at?: string
+  created_at: string
+  updated_at?: string
+}
+
+// Message sending request types
+export interface SendMessageRequest {
+  customerIds?: string[]
+  phoneNumbers?: string[]
+  message: string
+  templateId?: string
+  contextType?: MessageContextType
+  contextId?: string
+  templateVariables?: Record<string, string>
+}
+
+export interface MessageRecipient {
+  customerId?: string
+  customerName?: string
+  phoneNumber: string
 }

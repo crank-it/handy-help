@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useBooking } from '@/contexts/BookingContext'
-import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { ProgressBar } from '@/components/booking/ProgressBar'
+import { AddressAutocomplete } from '@/components/booking/AddressAutocomplete'
 
 export default function AddressPage() {
   const router = useRouter()
@@ -22,7 +22,11 @@ export default function AddressPage() {
     }
 
     updateBookingData({ address, suburb })
-    router.push('/book/size')
+    router.push('/book/services')
+  }
+
+  const handleSuburbExtracted = (extractedSuburb: string) => {
+    setSuburb(extractedSuburb)
   }
 
   return (
@@ -46,31 +50,24 @@ export default function AddressPage() {
           </p>
 
           <div className="space-y-6">
-            <Input
-              label="Street Address"
-              placeholder="123 Main Street"
+            <AddressAutocomplete
               value={address}
-              onChange={(e) => {
-                setAddress(e.target.value)
+              onChange={(value) => {
+                setAddress(value)
                 setError('')
               }}
+              onSuburbExtracted={handleSuburbExtracted}
               error={error}
               required
             />
 
-            <Input
-              label="Suburb"
-              placeholder="Roslyn"
-              value={suburb}
-              onChange={(e) => setSuburb(e.target.value)}
-              helperText="Optional, helps with routing"
-            />
-
-            <div className="bg-bg-muted rounded-lg p-4">
-              <p className="text-sm text-text-secondary">
-                <strong>Service area:</strong> We service Dunedin and surrounding suburbs. Not sure if we cover your area? Book anyway and we'll confirm.
-              </p>
-            </div>
+            {suburb && (
+              <div className="bg-bg-muted rounded-lg p-3">
+                <p className="text-sm text-text-secondary">
+                  <strong>Suburb:</strong> {suburb}
+                </p>
+              </div>
+            )}
 
             <Button
               variant="primary"
@@ -78,7 +75,7 @@ export default function AddressPage() {
               className="w-full"
               onClick={handleContinue}
             >
-              Continue to Lawn Size →
+              Continue to Services →
             </Button>
           </div>
         </div>

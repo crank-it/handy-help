@@ -16,6 +16,9 @@ const STORAGE_KEY = 'handy-help-booking'
 const initialBookingData: BookingData = {
   address: '',
   suburb: '',
+  services: [],
+  otherServiceDescription: '',
+  inspectionBooked: false,
 }
 
 export function BookingProvider({ children }: { children: ReactNode }) {

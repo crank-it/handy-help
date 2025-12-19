@@ -8,8 +8,8 @@ export async function POST(request: NextRequest) {
     const {
       address,
       suburb,
-      lawnSize,
-      packageType,
+      services,
+      otherServiceDescription,
       name,
       phone,
       email,
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!address || !lawnSize || !packageType || !name || !phone) {
+    if (!address || !services || services.length === 0 || !name || !phone) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
         phone,
         address,
         suburb: suburb || null,
-        lawn_size: lawnSize,
-        package_type: packageType,
+        services,
+        other_service_description: otherServiceDescription || null,
         special_instructions: specialInstructions || null,
-        status: 'pending_assessment',
+        status: 'pending_inspection',
       })
       .select()
       .single()
@@ -46,28 +46,24 @@ export async function POST(request: NextRequest) {
     if (customerError) {
       console.error('Error creating customer:', customerError)
       return NextResponse.json(
-        { error: 'Failed to create booking' },
+        { error: 'Failed to create booking', details: customerError.message },
         { status: 500 }
       )
     }
 
-    // Generate visits for the year
-    const visits = generateCustomerVisits(customer.id, packageType)
-
-    // Insert all visits
-    const { error: visitsError } = await supabase
-      .from('visits')
-      .insert(visits)
-
-    if (visitsError) {
-      console.error('Error creating visits:', visitsError)
-      // Note: Customer was created but visits failed
-      // Consider implementing rollback or cleanup
-    }
+    // Note: Visits will be generated after proposal acceptance, not at booking time
 
     // Send notification email (if Resend is configured)
     if (process.env.RESEND_API_KEY) {
       try {
+        const serviceLabels: Record<string, string> = {
+          lawn_clearing: 'Lawn Clearing',
+          edge_trimming: 'Edge Trimming',
+          hedging: 'Hedging',
+          other: otherServiceDescription || 'Other Service',
+        }
+        const servicesHtml = services.map((s: string) => serviceLabels[s]).join(', ')
+
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -77,17 +73,17 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             from: 'Handy Help <bookings@handyhelp.nz>',
             to: process.env.NOTIFICATION_EMAIL || 'william@handyhelp.nz',
-            subject: `New Booking: ${name}`,
+            subject: `New Site Inspection Request: ${name}`,
             html: `
-              <h2>New Lawn Care Booking</h2>
+              <h2>New Site Inspection Booking</h2>
               <p><strong>Customer:</strong> ${name}</p>
               <p><strong>Phone:</strong> ${phone}</p>
               ${email ? `<p><strong>Email:</strong> ${email}</p>` : ''}
               <p><strong>Address:</strong> ${address}${suburb ? ', ' + suburb : ''}</p>
-              <p><strong>Lawn Size:</strong> ${lawnSize}</p>
-              <p><strong>Package:</strong> ${packageType}</p>
+              <p><strong>Services Requested:</strong> ${servicesHtml}</p>
               ${specialInstructions ? `<p><strong>Special Instructions:</strong> ${specialInstructions}</p>` : ''}
-              <p><strong>Status:</strong> Pending Assessment</p>
+              <p><strong>Status:</strong> Pending Inspection</p>
+              <p><strong>Next Step:</strong> Schedule and complete site inspection, then create proposal</p>
               <p><a href="https://handyhelp.nz/admin/customers/${customer.id}">View Customer Details</a></p>
             `,
           }),
