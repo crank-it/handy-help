@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Home, Calendar, Users, DollarSign, Menu, X, MessageCircle, FileText } from 'lucide-react'
+import { Home, Calendar, Users, DollarSign, Menu, X, MessageCircle, FileText, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
@@ -14,6 +14,7 @@ const navigation = [
   { name: 'Proposals', href: '/admin/proposals', icon: FileText },
   { name: 'Messages', href: '/admin/messages', icon: MessageCircle },
   { name: 'Earnings', href: '/admin/earnings', icon: DollarSign },
+  { name: 'Redwoods Lane', href: '/admin/redwoods', icon: MapPin },
 ]
 
 export function Sidebar() {

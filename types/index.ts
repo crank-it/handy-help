@@ -284,3 +284,40 @@ export interface MessageRecipient {
   customerName?: string
   phoneNumber: string
 }
+
+// Redwoods Lane - Local Business Management
+export type RedwoodsJobStatus = 'scheduled' | 'completed' | 'cancelled'
+export type RedwoodsPaymentStatus = 'pending' | 'paid'
+
+export interface RedwoodsCustomer {
+  id: string
+  house_number: string
+  customer_name: string
+  phone?: string
+  email?: string
+  agreed_price_cents: number
+  payment_frequency: 'per_visit' | 'weekly' | 'fortnightly' | 'monthly'
+  expectations?: string
+  special_notes?: string
+  start_date?: string
+  is_active: boolean
+  created_at: string
+  updated_at?: string
+}
+
+export interface RedwoodsJob {
+  id: string
+  customer_id: string
+  customer_name?: string
+  house_number?: string
+  scheduled_date: string
+  scheduled_time?: string
+  status: RedwoodsJobStatus
+  price_cents: number
+  payment_status: RedwoodsPaymentStatus
+  completed_at?: string
+  duration_minutes?: number
+  notes?: string
+  created_at: string
+  updated_at?: string
+}
