@@ -111,22 +111,12 @@ export function Sidebar() {
               <div className="text-xs text-text-muted">Handy Help NZ</div>
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <Link
-              href="/"
-              className="text-xs text-text-muted hover:text-brand-primary text-center"
-            >
-              Back to site
-            </Link>
-            <form action="/admin/logout" method="POST">
-              <button
-                type="submit"
-                className="w-full text-xs text-red-600 hover:text-red-700 font-semibold"
-              >
-                Sign Out
-              </button>
-            </form>
-          </div>
+          <Link
+            href="/"
+            className="text-xs text-text-muted hover:text-brand-primary text-center block"
+          >
+            Back to site
+          </Link>
         </div>
       </aside>
     </>
