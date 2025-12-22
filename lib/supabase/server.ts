@@ -8,7 +8,9 @@ export async function createClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables')
+    console.error('⚠️ Missing Supabase environment variables. Please configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel.')
+    // Return a mock client that will fail gracefully
+    throw new Error('Supabase is not configured. Please add environment variables in Vercel.')
   }
 
   return createServerClient(
