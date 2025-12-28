@@ -1,0 +1,59 @@
+# Environment Variables for Handy Help
+# Copy these to Vercel Dashboard → Settings → Environment Variables
+# Also copy to .env.local for local development
+
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://bttmnxguqbuvsnqknkqo.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0dG1ueGd1cWJ1dnNucWtua3FvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5MjQ1NjEsImV4cCI6MjA4MDUwMDU2MX0.cbHcvVnkPIQk2oCyWI8eT-CbbNvWNGlyrYNWMxFkVuc
+SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0dG1ueGd1cWJ1dnNucWtua3FvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDkyNDU2MSwiZXhwIjoyMDgwNTAwNTYxfQ._1U1YJn5ZB9f9nn0KPdQLYYgrg34qdA2bDUiykihdT8
+
+# Email Configuration
+NOTIFICATION_EMAIL=william@handyhelp.nz
+
+# Site Configuration (change for production)
+NEXT_PUBLIC_SITE_URL=http://localhost:3002
+
+# Calendly URLs (optional - for booking flow)
+NEXT_PUBLIC_CALENDLY_INSPECTION_URL=
+NEXT_PUBLIC_CALENDLY_FIRST_VISIT_URL=
+
+# WhatsApp Configuration (optional - for messaging)
+WHATSAPP_PHONE_NUMBER_ID=
+WHATSAPP_ACCESS_TOKEN=
+WHATSAPP_VERIFY_TOKEN=
+
+# Resend API (optional - for email notifications)
+RESEND_API_KEY=
+
+# ============================================
+# HOW TO USE:
+# ============================================
+
+# FOR LOCAL DEVELOPMENT:
+# 1. Copy this entire file content
+# 2. Create a file named .env.local in the project root
+# 3. Paste the content into .env.local
+# 4. Save and restart your dev server
+
+# FOR VERCEL PRODUCTION:
+# 1. Go to Vercel Dashboard
+# 2. Select your project
+# 3. Go to Settings → Environment Variables
+# 4. Add each variable above (name and value)
+# 5. Select all environments: Production, Preview, Development
+# 6. Save and redeploy
+
+# REQUIRED VARIABLES (must be set):
+# - NEXT_PUBLIC_SUPABASE_URL
+# - NEXT_PUBLIC_SUPABASE_ANON_KEY
+# - SUPABASE_SERVICE_KEY
+# - NOTIFICATION_EMAIL
+
+# OPTIONAL VARIABLES (can be empty):
+# - NEXT_PUBLIC_CALENDLY_INSPECTION_URL
+# - NEXT_PUBLIC_CALENDLY_FIRST_VISIT_URL
+# - WHATSAPP_PHONE_NUMBER_ID
+# - WHATSAPP_ACCESS_TOKEN
+# - WHATSAPP_VERIFY_TOKEN
+# - RESEND_API_KEY
+

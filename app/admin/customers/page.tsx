@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Customer } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import { AddCustomerModal } from '@/components/admin/AddCustomerModal'
 
 // Helper to calculate price per visit based on lawn size and package
 function getPricePerVisit(lawnSize: string, packageType: string): number {
@@ -24,26 +25,32 @@ export default function CustomersPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
-    async function fetchCustomers() {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error('Error fetching customers:', error)
-        setCustomers([])
-      } else {
-        setCustomers(data || [])
-      }
-      setLoading(false)
-    }
-
     fetchCustomers()
   }, [])
+
+  async function fetchCustomers() {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching customers:', error)
+      setCustomers([])
+    } else {
+      setCustomers(data || [])
+    }
+    setLoading(false)
+  }
+
+  const handleCustomerAdded = () => {
+    // Refresh the customer list
+    fetchCustomers()
+  }
 
   const filteredCustomers = customers.filter((customer) => {
     const matchesSearch =
@@ -82,8 +89,16 @@ export default function CustomersPage() {
         <h1 className="text-3xl font-bold text-brand-primary">
           Customers
         </h1>
-        <Button variant="primary">+ Add Customer</Button>
+        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+          + Add Customer
+        </Button>
       </div>
+
+      <AddCustomerModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleCustomerAdded}
+      />
 
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">

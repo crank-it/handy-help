@@ -124,3 +124,48 @@ export async function updateCustomerStatus(
 
   return true
 }
+
+export interface CreateCustomerInput {
+  name: string
+  email?: string
+  phone: string
+  address: string
+  suburb?: string
+  lawn_size?: 'small' | 'medium' | 'large'
+  package_type?: 'standard' | 'premium'
+  special_instructions?: string
+  start_date?: string
+  status?: string
+}
+
+export async function createCustomer(
+  input: CreateCustomerInput
+): Promise<{ success: boolean; customerId?: string; error?: string }> {
+  const supabase = await createClient()
+
+  const customerData = {
+    name: input.name,
+    email: input.email || null,
+    phone: input.phone,
+    address: input.address,
+    suburb: input.suburb || null,
+    lawn_size: input.lawn_size || null,
+    package_type: input.package_type || null,
+    special_instructions: input.special_instructions || null,
+    start_date: input.start_date || null,
+    status: input.status || 'pending_assessment',
+  }
+
+  const { data, error } = await supabase
+    .from('customers')
+    .insert(customerData)
+    .select('id')
+    .single()
+
+  if (error) {
+    console.error('Error creating customer:', error)
+    return { success: false, error: error.message }
+  }
+
+  return { success: true, customerId: data.id }
+}
