@@ -154,6 +154,7 @@ export interface Proposal {
   // Additional services and notes
   included_services: string[]
   notes?: string
+  custom_message?: string
 
   // Status tracking
   status: 'sent' | 'accepted' | 'rejected' | 'expired'

@@ -221,17 +221,32 @@ export default async function ProposalPage({
                 size="lg"
                 className="w-full"
               >
-                Accept Proposal
+                ✅ Accept Proposal
               </Button>
             </form>
 
+            <form action={`/api/proposals/${token}/reject`} method="POST" className="flex-1">
+              <Button
+                type="submit"
+                variant="secondary"
+                size="lg"
+                className="w-full"
+              >
+                ❌ Decline
+              </Button>
+            </form>
+          </div>
+        )}
+
+        {/* Contact Link */}
+        {!isExpired && proposal.status === 'sent' && (
+          <div className="text-center mt-4">
             <Button
               variant="secondary"
-              size="lg"
-              className="flex-1"
+              size="sm"
               onClick={() => window.location.href = 'mailto:contact@handyhelp.nz?subject=Proposal Question'}
             >
-              Contact Us
+              Have questions? Contact Us
             </Button>
           </div>
         )}

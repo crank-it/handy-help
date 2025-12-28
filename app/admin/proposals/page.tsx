@@ -5,12 +5,14 @@ import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { FileText, Copy, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
+import { FileText, Copy, CheckCircle, XCircle, Clock, AlertCircle, Plus } from 'lucide-react'
+import { CreateProposalModal } from '@/components/admin/CreateProposalModal'
 
 export default function ProposalsPage() {
   const [proposals, setProposals] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'sent' | 'accepted' | 'rejected' | 'expired'>('all')
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   useEffect(() => {
     fetchProposals()
@@ -72,13 +74,22 @@ export default function ProposalsPage() {
 
   return (
     <div className="pb-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-brand-primary mb-2">
-          Proposals
-        </h1>
-        <p className="text-text-secondary">
-          Manage customer proposals and track acceptance rates
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-brand-primary mb-2">
+            Proposals
+          </h1>
+          <p className="text-text-secondary">
+            Manage customer proposals and track acceptance rates
+          </p>
+        </div>
+        <Button
+          variant="primary"
+          onClick={() => setIsCreateModalOpen(true)}
+        >
+          <Plus size={20} className="mr-2" />
+          Create Proposal
+        </Button>
       </div>
 
       {/* Stats */}
@@ -202,6 +213,13 @@ export default function ProposalsPage() {
           ))}
         </div>
       )}
+
+      {/* Create Proposal Modal */}
+      <CreateProposalModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={fetchProposals}
+      />
     </div>
   )
 }

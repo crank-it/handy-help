@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
+import { sendEmail } from '@/lib/email/service'
+import { generateProposalEmail } from '@/lib/email/templates'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +16,7 @@ export async function POST(request: NextRequest) {
       estimatedAnnualVisits,
       includedServices,
       notes,
+      customMessage,
     } = body
 
     // Validate required fields
@@ -67,6 +70,7 @@ export async function POST(request: NextRequest) {
         estimated_annual_visits: estimatedAnnualVisits,
         included_services: includedServices || [],
         notes: notes || null,
+        custom_message: customMessage || null,
         status: 'sent',
         expires_at: expiresAt.toISOString(),
       })
@@ -94,8 +98,48 @@ export async function POST(request: NextRequest) {
     // Generate proposal URL
     const proposalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/proposal/${token}`
 
-    // TODO: Send proposal link via WhatsApp/Email
-    // For now, we'll just return the URL
+    // Send proposal email
+    let emailSent = false
+    let emailError = null
+
+    if (customer.email) {
+      const expiryDate = new Date(proposal.expires_at).toLocaleDateString('en-NZ', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      })
+
+      const emailHtml = generateProposalEmail({
+        customerName: customer.name,
+        address: customer.address || '',
+        suburb: customer.suburb || undefined,
+        lawnSize,
+        packageType,
+        visitFrequencyDays,
+        pricePerVisit: pricePerVisitCents / 100,
+        estimatedAnnualVisits,
+        estimatedAnnualCost: (pricePerVisitCents / 100) * estimatedAnnualVisits,
+        includedServices,
+        notes: notes || undefined,
+        customMessage: customMessage || undefined,
+        proposalUrl,
+        expiryDate,
+      })
+
+      const emailResult = await sendEmail(
+        customer.email,
+        '🌿 Your Lawn Care Proposal from Handy Help',
+        emailHtml
+      )
+
+      emailSent = emailResult.success
+      emailError = emailResult.error || null
+
+      if (!emailResult.success) {
+        console.error('Failed to send proposal email:', emailResult.error)
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -103,6 +147,8 @@ export async function POST(request: NextRequest) {
       token: proposal.token,
       proposalUrl,
       expiresAt: proposal.expires_at,
+      emailSent,
+      emailError,
     })
   } catch (error) {
     console.error('Proposal creation error:', error)
