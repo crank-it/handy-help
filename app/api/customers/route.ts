@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createCustomer } from '@/lib/data/customers'
+import { createCustomer, getCustomers } from '@/lib/data/customers'
+
+export async function GET() {
+  try {
+    const customers = await getCustomers()
+    return NextResponse.json({ success: true, customers }, { status: 200 })
+  } catch (error) {
+    console.error('Error in GET /api/customers:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
