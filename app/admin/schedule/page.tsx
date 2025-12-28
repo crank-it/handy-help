@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, MessageCircle, Users, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ActivityFeed } from '@/components/admin/ActivityFeed'
-import { MessageDialog, type MessageRecipient } from '@/components/admin/MessageDialog'
 import type { Visit } from '@/types'
 
 // Mock customer phone data (in production this would come from the database)

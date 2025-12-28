@@ -209,3 +209,80 @@ export interface PortalMessage {
   message: string
   created_at: string
 }
+
+// Redwoods Lane Jobs (one-off residential jobs)
+export interface RedwoodsJob {
+  id: string
+  customer_id: string
+  scheduled_date: string
+  scheduled_time?: string
+  status: 'scheduled' | 'completed' | 'cancelled'
+  price_cents: number
+  duration_minutes?: number
+  notes?: string
+  payment_status: 'pending' | 'paid'
+  completed_at?: string
+  created_at: string
+  updated_at?: string
+}
+
+// UI Types
+export interface MessageRecipient {
+  id: string
+  name: string
+  phone: string
+  address?: string
+}
+
+// Messaging Types
+export type MessageStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'failed'
+export type MessageContextType = 'visit_reminder' | 'visit_confirmation' | 'proposal' | 'general' | 'bulk'
+export type TemplateCategory = 'reminder' | 'confirmation' | 'proposal' | 'general' | 'marketing'
+
+export interface Message {
+  id: string
+  customer_id?: string
+  customer_name?: string
+  phone_number: string
+  message_body: string
+  template_id?: string
+  direction: 'outbound' | 'inbound'
+  status: MessageStatus
+  whatsapp_message_id?: string
+  context_type?: MessageContextType
+  context_id?: string
+  bulk_message_id?: string
+  error_message?: string
+  sent_at?: string
+  delivered_at?: string
+  read_at?: string
+  created_at: string
+  updated_at?: string
+}
+
+export interface MessageTemplate {
+  id: string
+  name: string
+  category: TemplateCategory
+  template_body: string
+  whatsapp_template_name?: string
+  whatsapp_template_namespace?: string
+  is_active: boolean
+  created_at: string
+  updated_at?: string
+}
+
+export interface BulkMessage {
+  id: string
+  message_body: string
+  template_id?: string
+  status: 'pending' | 'sending' | 'completed' | 'partial_failure'
+  total_recipients: number
+  sent_count: number
+  delivered_count: number
+  failed_count: number
+  started_at?: string
+  completed_at?: string
+  created_at: string
+  updated_at?: string
+}

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { generateCustomerVisits } from '@/lib/data/visits'
-import { sendEmail } from '@/lib/email/service'
-import { generateAcceptanceEmail } from '@/lib/email/templates'
 
 export async function POST(
   request: NextRequest,
@@ -100,26 +98,6 @@ export async function POST(
       console.error('Error creating visits:', visitsError)
       // Don't fail the acceptance if visits creation fails
       // Visits can be regenerated manually
-    }
-
-    // Send acceptance confirmation email
-    const { data: customer, error: customerError } = await supabase
-      .from('customers')
-      .select('name, email, address')
-      .eq('id', proposal.customer_id)
-      .single()
-
-    if (!customerError && customer && customer.email) {
-      const emailHtml = generateAcceptanceEmail(
-        customer.name,
-        customer.address
-      )
-
-      await sendEmail(
-        customer.email,
-        '🎉 Thank You! Your Proposal is Accepted',
-        emailHtml
-      )
     }
 
     return NextResponse.json({

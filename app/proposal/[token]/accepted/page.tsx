@@ -5,8 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { CalendlyEmbed } from '@/components/booking/CalendlyEmbed'
-import { CheckCircle, Calendar } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 
 export default function ProposalAcceptedPage() {
   const params = useParams()
@@ -14,7 +13,6 @@ export default function ProposalAcceptedPage() {
   const [proposal, setProposal] = useState<any>(null)
   const [customer, setCustomer] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [firstVisitBooked, setFirstVisitBooked] = useState(false)
 
   useEffect(() => {
     // Fetch proposal details
@@ -34,12 +32,6 @@ export default function ProposalAcceptedPage() {
     }
   }, [token])
 
-  const handleFirstVisitScheduled = () => {
-    setFirstVisitBooked(true)
-  }
-
-  const calendlyUrl = process.env.NEXT_PUBLIC_CALENDLY_FIRST_VISIT_URL || ''
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-bg-primary to-bg-secondary py-12">
       <div className="container max-w-4xl mx-auto px-4">
@@ -55,22 +47,6 @@ export default function ProposalAcceptedPage() {
             Welcome to Handy Help - we're excited to care for your lawn!
           </p>
         </div>
-
-        {firstVisitBooked && (
-          <Card className="mb-6 bg-green-50 border-green-200">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="text-green-600" size={24} />
-              <div>
-                <h3 className="font-semibold text-green-900">
-                  First Visit Scheduled!
-                </h3>
-                <p className="text-sm text-green-700">
-                  We'll see you at your scheduled time. You'll receive a reminder before we arrive.
-                </p>
-              </div>
-            </div>
-          </Card>
-        )}
 
         {/* What Happens Next */}
         <Card className="mb-6">
@@ -98,10 +74,10 @@ export default function ProposalAcceptedPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-text-primary mb-1">
-                  Book your first visit
+                  We'll contact you
                 </h3>
                 <p className="text-sm text-text-secondary">
-                  Use the calendar below to choose a time that works for you
+                  Will will reach out to schedule your first visit at a time that works for you
                 </p>
               </div>
             </div>
@@ -112,10 +88,10 @@ export default function ProposalAcceptedPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-text-primary mb-1">
-                  We'll send you reminders
+                  Regular service begins
                 </h3>
                 <p className="text-sm text-text-secondary">
-                  You'll receive a text the day before each visit
+                  After your first visit, we'll maintain your lawn on the agreed schedule
                 </p>
               </div>
             </div>
@@ -126,42 +102,14 @@ export default function ProposalAcceptedPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-text-primary mb-1">
-                  Sit back and relax
+                  Enjoy your beautiful lawn
                 </h3>
                 <p className="text-sm text-text-secondary">
-                  You don't need to be home - we'll take care of everything
+                  Sit back and relax while we take care of your lawn care needs
                 </p>
               </div>
             </div>
           </div>
-        </Card>
-
-        {/* Calendly Embed */}
-        <Card className="mb-6">
-          <h2 className="text-2xl font-bold text-brand-primary mb-4 flex items-center gap-2">
-            <Calendar size={28} />
-            Schedule Your First Visit
-          </h2>
-
-          {!calendlyUrl ? (
-            <div className="text-center py-12">
-              <p className="text-text-secondary mb-4">
-                Calendly scheduling is not yet configured. We'll contact you to schedule your first visit.
-              </p>
-              <p className="text-sm text-text-tertiary">
-                Add NEXT_PUBLIC_CALENDLY_FIRST_VISIT_URL to environment variables
-              </p>
-            </div>
-          ) : (
-            <CalendlyEmbed
-              url={calendlyUrl}
-              prefill={{
-                name: customer?.name,
-                email: customer?.email,
-              }}
-              onEventScheduled={handleFirstVisitScheduled}
-            />
-          )}
         </Card>
 
         {/* Contact */}
