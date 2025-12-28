@@ -106,22 +106,29 @@ export async function POST(request: NextRequest) {
     expiresAt.setDate(expiresAt.getDate() + 14)
 
     // Create proposal
+    // Note: custom_message requires migration 007 to be run
+    const proposalData: any = {
+      customer_id: customerId,
+      token,
+      lawn_size: lawnSize,
+      package_type: packageType,
+      visit_frequency_days: visitFrequencyDays,
+      price_per_visit_cents: pricePerVisitCents,
+      estimated_annual_visits: estimatedAnnualVisits,
+      included_services: includedServices || [],
+      notes: notes && notes.trim() !== '' ? notes : null,
+      status: 'sent',
+      expires_at: expiresAt.toISOString(),
+    }
+
+    // Only add custom_message if it's provided (backwards compatible)
+    if (customMessage && customMessage.trim() !== '') {
+      proposalData.custom_message = customMessage
+    }
+
     const { data: proposal, error: proposalError } = await supabase
       .from('proposals')
-      .insert({
-        customer_id: customerId,
-        token,
-        lawn_size: lawnSize,
-        package_type: packageType,
-        visit_frequency_days: visitFrequencyDays,
-        price_per_visit_cents: pricePerVisitCents,
-        estimated_annual_visits: estimatedAnnualVisits,
-        included_services: includedServices || [],
-        notes: notes && notes.trim() !== '' ? notes : null,
-        custom_message: customMessage && customMessage.trim() !== '' ? customMessage : null,
-        status: 'sent',
-        expires_at: expiresAt.toISOString(),
-      })
+      .insert(proposalData)
       .select()
       .single()
 

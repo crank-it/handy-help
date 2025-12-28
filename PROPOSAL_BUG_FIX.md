@@ -1,5 +1,23 @@
 # Proposal Creation Bug Fix
 
+## 🚨 URGENT: Run Migration First!
+
+**You're getting this error:**
+```
+Could not find the 'custom_message' column of 'proposals' in the schema cache
+```
+
+**Solution:** Run migration 007 on your production database.
+
+👉 **See [RUN_MIGRATION_007.md](./RUN_MIGRATION_007.md) for step-by-step instructions.**
+
+Quick fix via Supabase SQL Editor:
+```sql
+ALTER TABLE proposals ADD COLUMN IF NOT EXISTS custom_message TEXT;
+```
+
+---
+
 ## Issues Fixed
 
 ### 1. Customer Search Not Working ✅
