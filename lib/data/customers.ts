@@ -143,6 +143,18 @@ export async function createCustomer(
 ): Promise<{ success: boolean; customerId?: string; error?: string }> {
   const supabase = await createClient()
 
+  // Generate URL slug from address
+  const { data: slugData, error: slugError } = await supabase
+    .rpc('generate_url_slug', { 
+      address: input.address, 
+      suburb: input.suburb || null 
+    })
+
+  if (slugError) {
+    console.error('Error generating URL slug:', slugError)
+    return { success: false, error: 'Failed to generate customer portal URL' }
+  }
+
   const customerData = {
     name: input.name,
     email: input.email || null,
@@ -154,6 +166,7 @@ export async function createCustomer(
     special_instructions: input.special_instructions || null,
     start_date: input.start_date || null,
     status: input.status || 'pending_assessment',
+    url_slug: slugData,
   }
 
   const { data, error } = await supabase

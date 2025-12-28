@@ -137,12 +137,8 @@ export function CreateProposalModal({ isOpen, onClose, onSuccess }: CreatePropos
       }
 
       if (data.success) {
-        // Show success message even if email failed
-        if (data.emailSent) {
-          alert('Proposal created and sent successfully!')
-        } else {
-          alert(`Proposal created successfully!\n\nNote: Email could not be sent${data.emailError ? `: ${data.emailError}` : ''}`)
-        }
+        // Show proposal URL with copy button
+        alert(`Proposal created successfully!\n\nProposal URL: ${data.proposalUrl}\n\nYou can copy this URL and send it to the customer via your preferred method.`)
         onSuccess?.()
         onClose()
         resetForm()
@@ -444,22 +440,16 @@ export function CreateProposalModal({ isOpen, onClose, onSuccess }: CreatePropos
                   rows={4}
                 />
                 <p className="text-xs text-text-muted mt-1">
-                  This message will be included in the proposal email to the customer.
+                  This message will be visible when the customer views their proposal.
                 </p>
               </div>
 
-              {/* Email Preview */}
+              {/* URL Info */}
               <Card className="bg-blue-50 border-blue-200">
-                <h3 className="font-semibold text-blue-900 mb-2">📧 Email Preview</h3>
+                <h3 className="font-semibold text-blue-900 mb-2">🔗 Proposal URL</h3>
                 <p className="text-sm text-blue-800">
-                  An email will be sent to {selectedCustomer.email || selectedCustomer.phone} with:
+                  A unique URL will be generated for this proposal. You can send this URL to the customer via your preferred method (text, email, etc.).
                 </p>
-                <ul className="text-sm text-blue-800 mt-2 ml-4 space-y-1 list-disc">
-                  <li>Complete proposal details</li>
-                  <li>Pricing breakdown</li>
-                  <li>Accept and Reject buttons</li>
-                  {customMessage && <li>Your custom message</li>}
-                </ul>
               </Card>
             </div>
           )}
@@ -510,7 +500,7 @@ export function CreateProposalModal({ isOpen, onClose, onSuccess }: CreatePropos
                 ) : (
                   <>
                     <Send className="mr-2" size={16} />
-                    Send Proposal
+                    Create Proposal
                   </>
                 )}
               </Button>

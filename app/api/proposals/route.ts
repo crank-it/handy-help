@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
-import { sendEmail } from '@/lib/email/service'
-import { generateProposalEmail } from '@/lib/email/templates'
 
 export async function POST(request: NextRequest) {
   try {
@@ -155,65 +153,12 @@ export async function POST(request: NextRequest) {
                     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
     const proposalUrl = `${baseUrl}/proposal/${token}`
 
-    // Send proposal email
-    let emailSent = false
-    let emailError = null
-
-    if (customer.email) {
-      try {
-        const expiryDate = new Date(proposal.expires_at).toLocaleDateString('en-NZ', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        })
-
-        const emailHtml = generateProposalEmail({
-          customerName: customer.name,
-          address: customer.address || '',
-          suburb: customer.suburb || undefined,
-          lawnSize,
-          packageType,
-          visitFrequencyDays,
-          pricePerVisit: pricePerVisitCents / 100,
-          estimatedAnnualVisits,
-          estimatedAnnualCost: (pricePerVisitCents / 100) * estimatedAnnualVisits,
-          includedServices,
-          notes: notes || undefined,
-          customMessage: customMessage || undefined,
-          proposalUrl,
-          expiryDate,
-        })
-
-        const emailResult = await sendEmail(
-          customer.email,
-          '🌿 Your Lawn Care Proposal from Handy Help',
-          emailHtml
-        )
-
-        emailSent = emailResult.success
-        emailError = emailResult.error || null
-
-        if (!emailResult.success) {
-          console.error('Failed to send proposal email:', emailResult.error)
-        }
-      } catch (emailException) {
-        console.error('Exception while sending proposal email:', emailException)
-        emailError = emailException instanceof Error ? emailException.message : 'Unknown email error'
-      }
-    } else {
-      console.warn('Customer has no email address, skipping email notification')
-      emailError = 'Customer has no email address'
-    }
-
     return NextResponse.json({
       success: true,
       proposalId: proposal.id,
       token: proposal.token,
       proposalUrl,
       expiresAt: proposal.expires_at,
-      emailSent,
-      emailError,
     })
   } catch (error) {
     console.error('Proposal creation error:', error)

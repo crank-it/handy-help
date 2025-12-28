@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Phone, Mail, MapPin, ArrowLeft, ClipboardCheck, AlertCircle, Clock, AlertTriangle, MessageCircle } from 'lucide-react'
+import { Phone, Mail, MapPin, ArrowLeft, ClipboardCheck, AlertCircle, Clock, AlertTriangle, Copy, Link as LinkIcon, Send } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { MessageDialog, type MessageRecipient } from '@/components/admin/MessageDialog'
+import { Textarea } from '@/components/ui/Textarea'
 import { createClient } from '@/lib/supabase/client'
 import { Customer } from '@/types'
 
@@ -24,8 +24,9 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [customer, setCustomer] = useState<any | null>(null)
   const [visits, setVisits] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false)
   const [customerId, setCustomerId] = useState<string | null>(null)
+  const [newMessage, setNewMessage] = useState('')
+  const [isSendingMessage, setIsSendingMessage] = useState(false)
 
   useEffect(() => {
     async function resolveParams() {
@@ -119,12 +120,36 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
     )
   }
 
-  // Build recipient for messaging
-  const messageRecipient: MessageRecipient = {
-    id: customer.id,
-    name: customer.name,
-    phone: customer.phone,
-    address: customer.address,
+  const copyPortalUrl = () => {
+    const baseUrl = window.location.origin
+    const portalUrl = `${baseUrl}/c/${customer.url_slug}`
+    navigator.clipboard.writeText(portalUrl)
+    alert('Portal URL copied to clipboard!')
+  }
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return
+
+    setIsSendingMessage(true)
+    const supabase = createClient()
+
+    const { error } = await supabase
+      .from('portal_messages')
+      .insert({
+        customer_id: customer.id,
+        sender: 'admin',
+        message: newMessage.trim(),
+      })
+
+    if (error) {
+      console.error('Error sending message:', error)
+      alert('Failed to send message')
+    } else {
+      setNewMessage('')
+      alert('Message sent successfully!')
+    }
+
+    setIsSendingMessage(false)
   }
 
   const getStatusBadge = (status: string) => {
@@ -188,19 +213,36 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             {getStatusBadge(customer.status)}
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setIsMessageDialogOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <MessageCircle size={16} />
-              Message
-            </Button>
             <Button variant="secondary" size="sm">Edit</Button>
             <Button variant="secondary" size="sm">⋮</Button>
           </div>
         </div>
+
+        {/* Portal URL Section */}
+        {customer.url_slug && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <LinkIcon size={20} className="text-blue-600" />
+                <div>
+                  <div className="font-semibold text-blue-900">Customer Portal</div>
+                  <div className="text-sm text-blue-700">
+                    {window.location.origin}/c/{customer.url_slug}
+                  </div>
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={copyPortalUrl}
+                className="flex items-center gap-2"
+              >
+                <Copy size={16} />
+                Copy Link
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-6">
           <div>
@@ -314,6 +356,34 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             </div>
           </div>
         )}
+      </Card>
+
+      {/* Send Message Card */}
+      <Card className="mb-6">
+        <h2 className="text-xl font-semibold text-brand-primary mb-4">
+          Send Message to Portal
+        </h2>
+        <p className="text-sm text-text-secondary mb-4">
+          Send a message that will appear in the customer's portal. They'll see it next time they visit their portal link.
+        </p>
+        <div className="space-y-3">
+          <Textarea
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type your message here..."
+            rows={4}
+          />
+          <Button
+            variant="primary"
+            onClick={handleSendMessage}
+            isLoading={isSendingMessage}
+            disabled={!newMessage.trim()}
+            className="flex items-center gap-2"
+          >
+            <Send size={18} />
+            Send Message
+          </Button>
+        </div>
       </Card>
 
       {/* Stats Row */}
@@ -435,13 +505,6 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           ))}
         </div>
       </Card>
-
-      {/* Message Dialog */}
-      <MessageDialog
-        isOpen={isMessageDialogOpen}
-        onClose={() => setIsMessageDialogOpen(false)}
-        recipients={[messageRecipient]}
-      />
     </div>
   )
 }
