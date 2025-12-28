@@ -20,13 +20,24 @@ function getPricePerVisit(lawnSize: string, packageType: string): number {
   return pricing[lawnSize]?.[packageType] || 0
 }
 
-export default function CustomerDetailPage({ params }: { params: { id: string } }) {
+export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [customer, setCustomer] = useState<any | null>(null)
   const [visits, setVisits] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false)
+  const [customerId, setCustomerId] = useState<string | null>(null)
 
   useEffect(() => {
+    async function resolveParams() {
+      const resolvedParams = await params
+      setCustomerId(resolvedParams.id)
+    }
+    resolveParams()
+  }, [params])
+
+  useEffect(() => {
+    if (!customerId) return
+
     async function fetchCustomerData() {
       const supabase = createClient()
 
@@ -34,7 +45,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
       const { data: customerData, error: customerError } = await supabase
         .from('customers')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', customerId)
         .single()
 
       if (customerError) {
@@ -47,7 +58,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
       const { data: visitsData, error: visitsError } = await supabase
         .from('visits')
         .select('*')
-        .eq('customer_id', params.id)
+        .eq('customer_id', customerId)
         .order('scheduled_date', { ascending: false })
 
       if (visitsError) {
@@ -87,7 +98,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
     }
 
     fetchCustomerData()
-  }, [params.id])
+  }, [customerId])
 
   if (loading) {
     return (
