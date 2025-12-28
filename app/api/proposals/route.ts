@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Verify customer exists
     const { data: customer, error: customerError } = await supabase
       .from('customers')
-      .select('id, name, phone, email')
+      .select('id, name, phone, email, address, suburb')
       .eq('id', customerId)
       .single()
 
