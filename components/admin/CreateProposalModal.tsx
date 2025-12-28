@@ -130,16 +130,28 @@ export function CreateProposalModal({ isOpen, onClose, onSuccess }: CreatePropos
 
       const data = await response.json()
 
+      if (!response.ok) {
+        // Server returned an error
+        alert(`Error: ${data.error || 'Failed to create proposal'}${data.details ? `\n\nDetails: ${data.details}` : ''}`)
+        return
+      }
+
       if (data.success) {
+        // Show success message even if email failed
+        if (data.emailSent) {
+          alert('Proposal created and sent successfully!')
+        } else {
+          alert(`Proposal created successfully!\n\nNote: Email could not be sent${data.emailError ? `: ${data.emailError}` : ''}`)
+        }
         onSuccess?.()
         onClose()
         resetForm()
       } else {
-        alert(`Error: ${data.error}`)
+        alert(`Error: ${data.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error creating proposal:', error)
-      alert('Failed to create proposal. Please try again.')
+      alert('Failed to create proposal. Please check the console for details.')
     } finally {
       setIsSending(false)
     }

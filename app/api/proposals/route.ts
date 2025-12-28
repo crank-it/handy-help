@@ -34,6 +34,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate enum values
+    const validLawnSizes = ['small', 'medium', 'large']
+    const validPackageTypes = ['standard', 'premium']
+    
+    if (!validLawnSizes.includes(lawnSize)) {
+      return NextResponse.json(
+        { error: `Invalid lawn size. Must be one of: ${validLawnSizes.join(', ')}` },
+        { status: 400 }
+      )
+    }
+    
+    if (!validPackageTypes.includes(packageType)) {
+      return NextResponse.json(
+        { error: `Invalid package type. Must be one of: ${validPackageTypes.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
+    // Validate numeric values
+    if (visitFrequencyDays <= 0) {
+      return NextResponse.json(
+        { error: 'Visit frequency must be greater than 0' },
+        { status: 400 }
+      )
+    }
+
+    if (pricePerVisitCents < 0) {
+      return NextResponse.json(
+        { error: 'Price per visit cannot be negative' },
+        { status: 400 }
+      )
+    }
+
+    if (estimatedAnnualVisits <= 0) {
+      return NextResponse.json(
+        { error: 'Estimated annual visits must be greater than 0' },
+        { status: 400 }
+      )
+    }
+
     const supabase = await createClient()
 
     // Verify customer exists
@@ -47,6 +87,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Customer not found' },
         { status: 404 }
+      )
+    }
+
+    // Validate customer has required fields
+    if (!customer.address) {
+      return NextResponse.json(
+        { error: 'Customer must have an address to create a proposal' },
+        { status: 400 }
       )
     }
 
@@ -69,8 +117,8 @@ export async function POST(request: NextRequest) {
         price_per_visit_cents: pricePerVisitCents,
         estimated_annual_visits: estimatedAnnualVisits,
         included_services: includedServices || [],
-        notes: notes || null,
-        custom_message: customMessage || null,
+        notes: notes && notes.trim() !== '' ? notes : null,
+        custom_message: customMessage && customMessage.trim() !== '' ? customMessage : null,
         status: 'sent',
         expires_at: expiresAt.toISOString(),
       })
@@ -96,49 +144,59 @@ export async function POST(request: NextRequest) {
       .eq('id', customerId)
 
     // Generate proposal URL
-    const proposalUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/proposal/${token}`
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const proposalUrl = `${baseUrl}/proposal/${token}`
 
     // Send proposal email
     let emailSent = false
     let emailError = null
 
     if (customer.email) {
-      const expiryDate = new Date(proposal.expires_at).toLocaleDateString('en-NZ', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      })
+      try {
+        const expiryDate = new Date(proposal.expires_at).toLocaleDateString('en-NZ', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        })
 
-      const emailHtml = generateProposalEmail({
-        customerName: customer.name,
-        address: customer.address || '',
-        suburb: customer.suburb || undefined,
-        lawnSize,
-        packageType,
-        visitFrequencyDays,
-        pricePerVisit: pricePerVisitCents / 100,
-        estimatedAnnualVisits,
-        estimatedAnnualCost: (pricePerVisitCents / 100) * estimatedAnnualVisits,
-        includedServices,
-        notes: notes || undefined,
-        customMessage: customMessage || undefined,
-        proposalUrl,
-        expiryDate,
-      })
+        const emailHtml = generateProposalEmail({
+          customerName: customer.name,
+          address: customer.address || '',
+          suburb: customer.suburb || undefined,
+          lawnSize,
+          packageType,
+          visitFrequencyDays,
+          pricePerVisit: pricePerVisitCents / 100,
+          estimatedAnnualVisits,
+          estimatedAnnualCost: (pricePerVisitCents / 100) * estimatedAnnualVisits,
+          includedServices,
+          notes: notes || undefined,
+          customMessage: customMessage || undefined,
+          proposalUrl,
+          expiryDate,
+        })
 
-      const emailResult = await sendEmail(
-        customer.email,
-        '🌿 Your Lawn Care Proposal from Handy Help',
-        emailHtml
-      )
+        const emailResult = await sendEmail(
+          customer.email,
+          '🌿 Your Lawn Care Proposal from Handy Help',
+          emailHtml
+        )
 
-      emailSent = emailResult.success
-      emailError = emailResult.error || null
+        emailSent = emailResult.success
+        emailError = emailResult.error || null
 
-      if (!emailResult.success) {
-        console.error('Failed to send proposal email:', emailResult.error)
+        if (!emailResult.success) {
+          console.error('Failed to send proposal email:', emailResult.error)
+        }
+      } catch (emailException) {
+        console.error('Exception while sending proposal email:', emailException)
+        emailError = emailException instanceof Error ? emailException.message : 'Unknown email error'
       }
+    } else {
+      console.warn('Customer has no email address, skipping email notification')
+      emailError = 'Customer has no email address'
     }
 
     return NextResponse.json({
@@ -152,8 +210,19 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Proposal creation error:', error)
+    
+    // Log detailed error information
+    if (error instanceof Error) {
+      console.error('Error name:', error.name)
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }
